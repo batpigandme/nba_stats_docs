@@ -247,33 +247,50 @@ params</code></pre></div>
 ## &quot;0041500407&quot;          &quot;1&quot;         &quot;10&quot;          &quot;0&quot;      &quot;55800&quot; 
 ##    RangeType 
 ##          &quot;2&quot;</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pstats &lt;-<span class="st"> </span>df[[<span class="st">'resultSets'</span>]]
+<p>Note that the entire game is captured, regardless of <code>RangeType</code> here, as the <code>Period</code> and <code>Range</code> parameters are greater than the game’s actual duration.</p>
+<p>If we look at the <code>resultSets</code> from the JSON, we can see that there are actually three different sets of results nested in the JSON: <strong><code>PlayerStats</code></strong>, <strong><code>TeamStats</code></strong>, and <strong><code>TeamStarterBenchStats</code></strong>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## get resultSet from JSON
+resultSets &lt;-<span class="st"> </span>df[[<span class="st">'resultSets'</span>]]
 
+## view structure of resultSet
+<span class="kw">str</span>(resultSets)</code></pre></div>
+<pre><code>## 'data.frame':    3 obs. of  3 variables:
+##  $ name   : chr  &quot;PlayerStats&quot; &quot;TeamStats&quot; &quot;TeamStarterBenchStats&quot;
+##  $ headers:List of 3
+##   ..$ : chr  &quot;GAME_ID&quot; &quot;TEAM_ID&quot; &quot;TEAM_ABBREVIATION&quot; &quot;TEAM_CITY&quot; ...
+##   ..$ : chr  &quot;GAME_ID&quot; &quot;TEAM_ID&quot; &quot;TEAM_NAME&quot; &quot;TEAM_ABBREVIATION&quot; ...
+##   ..$ : chr  &quot;GAME_ID&quot; &quot;TEAM_ID&quot; &quot;TEAM_NAME&quot; &quot;TEAM_ABBREVIATION&quot; ...
+##  $ rowSet :List of 3
+##   ..$ : chr [1:18, 1:28] &quot;0041500407&quot; &quot;0041500407&quot; &quot;0041500407&quot; &quot;0041500407&quot; ...
+##   ..$ : chr [1:2, 1:25] &quot;0041500407&quot; &quot;0041500407&quot; &quot;1610612744&quot; &quot;1610612739&quot; ...
+##   ..$ : chr [1:4, 1:25] &quot;0041500407&quot; &quot;0041500407&quot; &quot;0041500407&quot; &quot;0041500407&quot; ...</code></pre>
+<p>The structure of the new <code>resultSets</code> data frame isn’t useful for analysis in R. The end goal is usually <a href="http://www.jstatsoft.org/v59/i10/paper"><em>Tidy Data</em></a>, but, at this point, we’re just aiming for something that doesn’t involve two columns of lists – in this case, the <strong><code>PlayerStats</code></strong>.</p>
+<div id="getting-playerstats-data" class="section level3">
+<h3>Getting <code>PlayerStats</code> Data</h3>
+<p>This code below is a bit messy at the moment, which is ok for now, since we’ll actually only be looking for specific values from the box score moving forward– it’s also often the nature of working with JSON in R. However, (<em>note to self</em>), I could probably clean things up a bit.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## get headers
 headers &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">unlist</span>(df$resultSets$headers[[<span class="dv">1</span>]]))
-headers &lt;-<span class="st"> </span><span class="kw">data_frame</span>(headers)
 
 ## data to matrix
 rowsets &lt;-<span class="st"> </span><span class="kw">unlist</span>(df$resultSets$rowSet[[<span class="dv">1</span>]])
 ## convert to data frame
 rowsets.df &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(rowsets)
 
+## convert column data types
+rowsets.df[, <span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">13</span>,<span class="dv">14</span>,<span class="dv">16</span>,<span class="dv">17</span>,<span class="dv">19</span>:<span class="dv">28</span>)] &lt;-<span class="st"> </span><span class="kw">sapply</span>(rowsets.df[, <span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">13</span>,<span class="dv">14</span>,<span class="dv">16</span>,<span class="dv">17</span>,<span class="dv">19</span>:<span class="dv">28</span>)], as.integer)
+rowsets.df[, <span class="kw">c</span>(<span class="dv">12</span>,<span class="dv">15</span>,<span class="dv">18</span>)] &lt;-<span class="st"> </span><span class="kw">sapply</span>(rowsets.df[, <span class="kw">c</span>(<span class="dv">12</span>,<span class="dv">15</span>,<span class="dv">18</span>)], as.numeric)
+
 ## convert to tbl_df
 rowsets_tbl &lt;-<span class="st"> </span><span class="kw">tbl_df</span>(rowsets.df)
 
-## headers as vector 
-headers_vec &lt;-<span class="st"> </span><span class="kw">as.vector</span>(headers$headers)
 ## assign headers as column names
-<span class="kw">names</span>(rowsets_tbl)[<span class="dv">1</span>:<span class="dv">28</span>] =<span class="st"> </span><span class="kw">c</span>(headers_vec)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## save as temp file
-<span class="kw">write.csv</span>(rowsets_tbl, <span class="dt">file =</span> <span class="st">&quot;output/rowsets_tbl.csv&quot;</span>, <span class="dt">row.names =</span> <span class="ot">FALSE</span>)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## read in using readr
-<span class="kw">library</span>(readr)
-rowsets_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;~/wicker/output/rowsets_tbl.csv&quot;</span>, <span class="dt">col_types =</span> <span class="kw">cols</span>(<span class="dt">MIN =</span> <span class="kw">col_character</span>()))
+<span class="kw">names</span>(rowsets_tbl)[<span class="dv">1</span>:<span class="dv">28</span>] =<span class="st"> </span><span class="kw">c</span>(headers)
 
+## look at what we've got
 <span class="kw">head</span>(rowsets_tbl)</code></pre></div>
 <pre><code>## # A tibble: 6 × 28
 ##      GAME_ID    TEAM_ID TEAM_ABBREVIATION TEAM_CITY PLAYER_ID
-##        &lt;chr&gt;      &lt;int&gt;             &lt;chr&gt;     &lt;chr&gt;     &lt;int&gt;
+##        &lt;chr&gt;      &lt;chr&gt;             &lt;chr&gt;     &lt;chr&gt;     &lt;chr&gt;
 ## 1 0041500407 1610612739               CLE Cleveland      2544
 ## 2 0041500407 1610612739               CLE Cleveland    201567
 ## 3 0041500407 1610612739               CLE Cleveland    202684
@@ -285,6 +302,16 @@ rowsets_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span
 ## #   FG3M &lt;int&gt;, FG3A &lt;int&gt;, FG3_PCT &lt;dbl&gt;, FTM &lt;int&gt;, FTA &lt;int&gt;,
 ## #   FT_PCT &lt;dbl&gt;, OREB &lt;int&gt;, DREB &lt;int&gt;, REB &lt;int&gt;, AST &lt;int&gt;, STL &lt;int&gt;,
 ## #   BLK &lt;int&gt;, TO &lt;int&gt;, PF &lt;int&gt;, PTS &lt;int&gt;, PLUS_MINUS &lt;int&gt;</code></pre>
+</div>
+<div id="saving-your-work" class="section level3">
+<h3>Saving Your Work</h3>
+<p>The following code chunks aren’t being evaluated. But it’s always good to know how to get your data in and out of R, and/or into a format you can use with the platform of your choice.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## save your data as a csv file
+<span class="kw">write.csv</span>(rowsets_tbl, <span class="dt">file =</span> <span class="st">&quot;~/data/rowsets_tbl.csv&quot;</span>, <span class="dt">row.names =</span> <span class="ot">FALSE</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## read a csv file in using readr
+<span class="kw">library</span>(readr)
+rowsets_tbl &lt;-<span class="st"> </span><span class="kw">read_csv</span>(<span class="st">&quot;~/data/rowsets_tbl.csv&quot;</span>, <span class="dt">col_types =</span> <span class="kw">cols</span>(<span class="dt">MIN =</span> <span class="kw">col_character</span>()))</code></pre></div>
+</div>
 </div>
 
 

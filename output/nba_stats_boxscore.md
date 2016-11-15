@@ -130,46 +130,67 @@ params
 ##          "2"
 ```
 
+Note that the entire game is captured, regardless of `RangeType` here, as the `Period` and `Range` parameters are greater than the game's actual duration.
+
+
+If we look at the `resultSets` from the JSON, we can see that there are actually three different sets of results nested in the JSON: **`PlayerStats`**, **`TeamStats`**, and **`TeamStarterBenchStats`**.
+
 
 ```r
-pstats <- df[['resultSets']]
+## get resultSet from JSON
+resultSets <- df[['resultSets']]
 
+## view structure of resultSet
+str(resultSets)
+```
+
+```
+## 'data.frame':	3 obs. of  3 variables:
+##  $ name   : chr  "PlayerStats" "TeamStats" "TeamStarterBenchStats"
+##  $ headers:List of 3
+##   ..$ : chr  "GAME_ID" "TEAM_ID" "TEAM_ABBREVIATION" "TEAM_CITY" ...
+##   ..$ : chr  "GAME_ID" "TEAM_ID" "TEAM_NAME" "TEAM_ABBREVIATION" ...
+##   ..$ : chr  "GAME_ID" "TEAM_ID" "TEAM_NAME" "TEAM_ABBREVIATION" ...
+##  $ rowSet :List of 3
+##   ..$ : chr [1:18, 1:28] "0041500407" "0041500407" "0041500407" "0041500407" ...
+##   ..$ : chr [1:2, 1:25] "0041500407" "0041500407" "1610612744" "1610612739" ...
+##   ..$ : chr [1:4, 1:25] "0041500407" "0041500407" "0041500407" "0041500407" ...
+```
+
+The structure of the new `resultSets` data frame isn't useful for analysis in R. The end goal is usually [*Tidy Data*](http://www.jstatsoft.org/v59/i10/paper), but, at this point, we're just aiming for something that doesn't involve two columns of lists -- in this case, the **`PlayerStats`**. 
+
+### Getting `PlayerStats` Data
+
+This code below is a bit messy at the moment, which is ok for now, since we'll actually only be looking for specific values from the box score moving forward-- it's also often the nature of working with JSON in R. However, (_note to self_), I could probably clean things up a bit.
+
+
+```r
+## get headers
 headers <- unlist(unlist(df$resultSets$headers[[1]]))
-headers <- data_frame(headers)
 
 ## data to matrix
 rowsets <- unlist(df$resultSets$rowSet[[1]])
 ## convert to data frame
 rowsets.df <- as.data.frame(rowsets)
 
+## convert column data types
+rowsets.df[, c(10,11,13,14,16,17,19:28)] <- sapply(rowsets.df[, c(10,11,13,14,16,17,19:28)], as.integer)
+rowsets.df[, c(12,15,18)] <- sapply(rowsets.df[, c(12,15,18)], as.numeric)
+
 ## convert to tbl_df
 rowsets_tbl <- tbl_df(rowsets.df)
 
-## headers as vector 
-headers_vec <- as.vector(headers$headers)
 ## assign headers as column names
-names(rowsets_tbl)[1:28] = c(headers_vec)
-```
+names(rowsets_tbl)[1:28] = c(headers)
 
-
-```r
-## save as temp file
-write.csv(rowsets_tbl, file = "output/rowsets_tbl.csv", row.names = FALSE)
-```
-
-
-```r
-## read in using readr
-library(readr)
-rowsets_tbl <- read_csv("~/wicker/output/rowsets_tbl.csv", col_types = cols(MIN = col_character()))
-
+## look at what we've got
 head(rowsets_tbl)
 ```
 
 ```
 ## # A tibble: 6 × 28
 ##      GAME_ID    TEAM_ID TEAM_ABBREVIATION TEAM_CITY PLAYER_ID
-##        <chr>      <int>             <chr>     <chr>     <int>
+##        <chr>      <chr>             <chr>     <chr>     <chr>
 ## 1 0041500407 1610612739               CLE Cleveland      2544
 ## 2 0041500407 1610612739               CLE Cleveland    201567
 ## 3 0041500407 1610612739               CLE Cleveland    202684
@@ -181,5 +202,23 @@ head(rowsets_tbl)
 ## #   FG3M <int>, FG3A <int>, FG3_PCT <dbl>, FTM <int>, FTA <int>,
 ## #   FT_PCT <dbl>, OREB <int>, DREB <int>, REB <int>, AST <int>, STL <int>,
 ## #   BLK <int>, TO <int>, PF <int>, PTS <int>, PLUS_MINUS <int>
+```
+
+### Saving Your Work
+
+The following code chunks aren't being evaluated. But it's always good to know how to get your data in and out of R, and/or into a format you can use with the platform of your choice. 
+
+
+```r
+## save your data as a csv file
+write.csv(rowsets_tbl, file = "~/data/rowsets_tbl.csv", row.names = FALSE)
+```
+
+
+
+```r
+## read a csv file in using readr
+library(readr)
+rowsets_tbl <- read_csv("~/data/rowsets_tbl.csv", col_types = cols(MIN = col_character()))
 ```
 

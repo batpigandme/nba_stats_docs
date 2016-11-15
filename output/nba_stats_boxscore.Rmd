@@ -129,37 +129,64 @@ params <- unlist(df$parameters)
 params
 ```
 
-```{r playerstats, warning=FALSE}
-pstats <- df[['resultSets']]
+Note that the entire game is captured, regardless of `RangeType` here, as the `Period` and `Range` parameters are greater than the game's actual duration.
 
+
+If we look at the `resultSets` from the JSON, we can see that there are actually three different sets of results nested in the JSON: **`PlayerStats`**, **`TeamStats`**, and **`TeamStarterBenchStats`**.
+
+```{r resultSets, warning=FALSE}
+## get resultSet from JSON
+resultSets <- df[['resultSets']]
+
+## view structure of resultSet
+str(resultSets)
+```
+
+The structure of the new `resultSets` data frame isn't useful for analysis in R. The end goal is usually [*Tidy Data*](http://www.jstatsoft.org/v59/i10/paper), but, at this point, we're just aiming for something that doesn't involve two columns of lists -- in this case, the **`PlayerStats`**. 
+
+### Getting `PlayerStats` Data
+
+This code below is a bit messy at the moment, which is ok for now, since we'll actually only be looking for specific values from the box score moving forward-- it's also often the nature of working with JSON in R. However, (_note to self_), I could probably clean things up a bit.
+
+```{r playerstats}
+
+## get headers
 headers <- unlist(unlist(df$resultSets$headers[[1]]))
-headers <- data_frame(headers)
 
 ## data to matrix
 rowsets <- unlist(df$resultSets$rowSet[[1]])
 ## convert to data frame
 rowsets.df <- as.data.frame(rowsets)
 
+## convert column data types
+rowsets.df[, c(10,11,13,14,16,17,19:28)] <- sapply(rowsets.df[, c(10,11,13,14,16,17,19:28)], as.integer)
+rowsets.df[, c(12,15,18)] <- sapply(rowsets.df[, c(12,15,18)], as.numeric)
+
 ## convert to tbl_df
 rowsets_tbl <- tbl_df(rowsets.df)
 
-## headers as vector 
-headers_vec <- as.vector(headers$headers)
 ## assign headers as column names
-names(rowsets_tbl)[1:28] = c(headers_vec)
+names(rowsets_tbl)[1:28] = c(headers)
+
+## look at what we've got
+head(rowsets_tbl)
+
 ```
+
+### Saving Your Work
+
+The following code chunks aren't being evaluated. But it's always good to know how to get your data in and out of R, and/or into a format you can use with the platform of your choice. 
 
 ```{r write file, eval=FALSE}
-## save as temp file
-write.csv(rowsets_tbl, file = "output/rowsets_tbl.csv", row.names = FALSE)
+## save your data as a csv file
+write.csv(rowsets_tbl, file = "~/data/rowsets_tbl.csv", row.names = FALSE)
 ```
 
-```{r read in file, warning=FALSE}
-## read in using readr
-library(readr)
-rowsets_tbl <- read_csv("~/wicker/output/rowsets_tbl.csv", col_types = cols(MIN = col_character()))
 
-head(rowsets_tbl)
+```{r read in file, eval=FALSE}
+## read a csv file in using readr
+library(readr)
+rowsets_tbl <- read_csv("~/data/rowsets_tbl.csv", col_types = cols(MIN = col_character()))
 
 ```
 
