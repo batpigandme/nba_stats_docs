@@ -39,7 +39,8 @@ get_pbp <- function(gameid){
   test3 <- data.frame(test2)
   coltest <- the.data.file$resultSets$headers
   colnames(test3) <- coltest[[1]]
-  return (test3)}
+  return (test3)
+  }
 ```
 
 The basic structure of a user-defined function in R involves a function name, arguments that need to be passed to the function, and the code telling for what the function should do and what data it should return. 
