@@ -158,7 +158,7 @@ rowsets <- unlist(df$resultSets$rowSet[[1]])
 ## convert to data frame
 rowsets.df <- as.data.frame(rowsets)
 
-## convert column data types
+## convert column data types from character
 rowsets.df[, c(10,11,13,14,16,17,19:28)] <- sapply(rowsets.df[, c(10,11,13,14,16,17,19:28)], as.integer)
 rowsets.df[, c(12,15,18)] <- sapply(rowsets.df[, c(12,15,18)], as.numeric)
 

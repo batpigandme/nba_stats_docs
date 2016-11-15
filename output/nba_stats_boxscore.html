@@ -276,7 +276,7 @@ rowsets &lt;-<span class="st"> </span><span class="kw">unlist</span>(df$resultSe
 ## convert to data frame
 rowsets.df &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(rowsets)
 
-## convert column data types
+## convert column data types from character
 rowsets.df[, <span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">13</span>,<span class="dv">14</span>,<span class="dv">16</span>,<span class="dv">17</span>,<span class="dv">19</span>:<span class="dv">28</span>)] &lt;-<span class="st"> </span><span class="kw">sapply</span>(rowsets.df[, <span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">13</span>,<span class="dv">14</span>,<span class="dv">16</span>,<span class="dv">17</span>,<span class="dv">19</span>:<span class="dv">28</span>)], as.integer)
 rowsets.df[, <span class="kw">c</span>(<span class="dv">12</span>,<span class="dv">15</span>,<span class="dv">18</span>)] &lt;-<span class="st"> </span><span class="kw">sapply</span>(rowsets.df[, <span class="kw">c</span>(<span class="dv">12</span>,<span class="dv">15</span>,<span class="dv">18</span>)], as.numeric)
 
