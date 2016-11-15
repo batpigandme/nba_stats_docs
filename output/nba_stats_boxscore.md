@@ -161,7 +161,7 @@ The structure of the new `resultSets` data frame isn't useful for analysis in R.
 
 ### Getting `PlayerStats` Data
 
-This code below is a bit messy at the moment, which is ok for now, since we'll actually only be looking for specific values from the box score moving forward-- it's also often the nature of working with JSON in R. However, (_note to self_), I could probably clean things up a bit.
+This code below is a bit messy at the moment, which is OK for now, since we'll actually only be looking for specific values from the box score moving forward-- it's also often the nature of working with JSON in R. However, (_note to self_), I could probably clean things up a bit.
 
 
 ```r
@@ -204,6 +204,11 @@ head(rowsets_tbl)
 ## #   BLK <int>, TO <int>, PF <int>, PTS <int>, PLUS_MINUS <int>
 ```
 
+
+There are actually more than six records-- the dimensions listed refer to what's being shown when you look at the data frame using `head`. To see the structure, you can run `str(rowsets_tbl)`, or just open up the data frame in RStudio, which should look something like the image below.
+
+![rowsets tibble in RStudio](nba_stats_scraping_files/images/rowsets_tbl_in_RStudio.png)
+
 ### Saving Your Work
 
 The following code chunks aren't being evaluated. But it's always good to know how to get your data in and out of R, and/or into a format you can use with the platform of your choice. 
@@ -220,5 +225,44 @@ write.csv(rowsets_tbl, file = "~/data/rowsets_tbl.csv", row.names = FALSE)
 ## read a csv file in using readr
 library(readr)
 rowsets_tbl <- read_csv("~/data/rowsets_tbl.csv", col_types = cols(MIN = col_character()))
+```
+
+
+===
+
+##### sessionInfo
+
+
+```r
+sessionInfo()
+```
+
+```
+## R version 3.3.2 (2016-10-31)
+## Platform: x86_64-apple-darwin13.4.0 (64-bit)
+## Running under: OS X El Capitan 10.11.6
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+##  [1] dplyr_0.5.0.9000   purrr_0.2.2.9000   readr_1.0.0.9000  
+##  [4] tidyr_0.6.0        tibble_1.2         ggplot2_2.1.0.9001
+##  [7] tidyverse_1.0.0    jsonlite_1.1       RCurl_1.95-4.8    
+## [10] bitops_1.0-6      
+## 
+## loaded via a namespace (and not attached):
+##  [1] Rcpp_0.12.7         knitr_1.15          magrittr_1.5       
+##  [4] hms_0.2             munsell_0.4.3       colorspace_1.2-7   
+##  [7] R6_2.2.0            stringr_1.1.0       plyr_1.8.4         
+## [10] tools_3.3.2         grid_3.3.2          gtable_0.2.0       
+## [13] DBI_0.5-1           htmltools_0.3.5     assertthat_0.1     
+## [16] yaml_2.1.14         lazyeval_0.2.0.9000 rprojroot_1.1      
+## [19] digest_0.6.10       curl_2.2            evaluate_0.10      
+## [22] rmarkdown_1.1.9016  stringi_1.1.2       scales_0.4.0.9003  
+## [25] backports_1.0.4
 ```
 

@@ -146,7 +146,7 @@ The structure of the new `resultSets` data frame isn't useful for analysis in R.
 
 ### Getting `PlayerStats` Data
 
-This code below is a bit messy at the moment, which is ok for now, since we'll actually only be looking for specific values from the box score moving forward-- it's also often the nature of working with JSON in R. However, (_note to self_), I could probably clean things up a bit.
+This code below is a bit messy at the moment, which is OK for now, since we'll actually only be looking for specific values from the box score moving forward-- it's also often the nature of working with JSON in R. However, (_note to self_), I could probably clean things up a bit.
 
 ```{r playerstats}
 
@@ -173,6 +173,11 @@ head(rowsets_tbl)
 
 ```
 
+
+There are actually more than six records-- the dimensions listed refer to what's being shown when you look at the data frame using `head`. To see the structure, you can run `str(rowsets_tbl)`, or just open up the data frame in RStudio, which should look something like the image below.
+
+![rowsets tibble in RStudio](nba_stats_scraping_files/images/rowsets_tbl_in_RStudio.png)
+
 ### Saving Your Work
 
 The following code chunks aren't being evaluated. But it's always good to know how to get your data in and out of R, and/or into a format you can use with the platform of your choice. 
@@ -188,5 +193,14 @@ write.csv(rowsets_tbl, file = "~/data/rowsets_tbl.csv", row.names = FALSE)
 library(readr)
 rowsets_tbl <- read_csv("~/data/rowsets_tbl.csv", col_types = cols(MIN = col_character()))
 
+```
+
+
+===
+
+##### sessionInfo
+
+```{r sessionInfo}
+sessionInfo()
 ```
 
