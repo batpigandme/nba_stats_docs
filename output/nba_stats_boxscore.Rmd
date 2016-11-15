@@ -102,7 +102,7 @@ The values for `StartRange` and `EndRange` are **tenths of seconds**. So, to get
 
 ## Parsing Box Score JSON with R
 
-Here we'll be retrieving box score data from stats.nba.com for the aforementioned Game 7 using parameters set directly in the URL.  
+Here we'll be retrieving box score data from stats.nba.com for the aforementioned Game 7 using parameters set directly in the URL. For lack of a better term, I'll just call this _“the messy way.”_
 
 Note that, as always, if you're running the R code yourself, you'll need to install any libraries/packages you don't already have, which you do by running `install.packages("packagename")`.  
 
