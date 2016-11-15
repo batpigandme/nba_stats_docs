@@ -230,7 +230,7 @@ rowsets_tbl <- read_csv("~/data/rowsets_tbl.csv", col_types = cols(MIN = col_cha
 
 ===
 
-##### sessionInfo
+**sessionInfo**
 
 
 ```r
