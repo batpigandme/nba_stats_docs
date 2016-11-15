@@ -3,6 +3,8 @@ Mara Averick
 
 
 
+#### ** **A Work in Progress** **
+
 ## NBA Stats API Resources
 
 This is not official documentation— it's a mash-up of information I have gathered from tinkering with the API, and the hard work of those who have done this before me, including:
