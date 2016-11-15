@@ -75,7 +75,7 @@ This was the parameter that initially tripped me up, since it determines which o
 
 * If `RangeType=0`, then, regardless of the values of other parameters, you will be retrieving the data for the entirety of the game specified in `GameID`.  
 * If `RangeType=1`, your data will be retrieved for the entirety of periods specified in `StartPeriod` and `EndPeriod`, regardless of what values are assigned to `StartRange` and `EndRange`.
-* If `RangeType=2`, the you will retrieve data for the time period specified in `StartRange` and `EndRange` (dicsussed in further detail, below).
+* If `RangeType=2`, the you will retrieve data for the time period specified in `StartRange` and `EndRange` (discussed in further detail, below).
 
 However, all of the parameters, _including_ those ignored, depending on `RangeType`, _are_ **required**. 
 
@@ -94,6 +94,10 @@ The values for `StartRange` and `EndRange` are **tenths of seconds**. So, to get
 
 ## Parsing Box Score JSON with R
 
+Here we'll be retrieving box score data from stats.nba.com for the aforementioned Game 7 using parameters set directly in the URL.  
+
+Note that, as always, if you're running the R code yourself, you'll need to install any libraries/packages you don't already have, which you do by running `install.packages("packagename")`.  
+
 
 ```r
 ## strings as factors to FALSE
@@ -107,6 +111,8 @@ library(tidyverse)
 ## get JSON from stats.nba.com
 df <- fromJSON("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=10&EndRange=55800&GameID=0041500407&RangeType=2&StartPeriod=1&StartRange=0")
 ```
+
+Let's look at the parameters to make sure they match up with what we were expecting, based on the URL.
 
 
 ```r
