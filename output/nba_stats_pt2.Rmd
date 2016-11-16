@@ -64,7 +64,9 @@ If you're in RStudio, the functions should appear in the **Environment** section
 
 ![functions loaded into global env](nba_stats_pt2_files/images/functions_loaded.png)
 
-We won't be using all of these functions (some of them will not work for the current season, as certain parts of the API have been depreciated), but let's take a quick look at one of them that we will be using (**`get_pbp`**) to get a better sense of what's involved. 
+#### Using `get_pbp`
+
+We won't be using all of these functions (some of them will not work for the current season, as certain parts of the API have been depreciated), but let's take a quick look at one of them that we will be using (**`get_pbp`**) to get a better sense of what's involved.[^1]
 
 ```{r get_pbp fun, eval=FALSE}
 
@@ -82,7 +84,7 @@ get_pbp <- function(gameid){
 
 ```
 
-Ignoring, for the time being, the tests, this function should look pretty similar to the code we ran to get box score data. The URL has all of the same parameters, but `GameID` is set by a user-assigned value, `gameid`.[^1]
+Ignoring, for the time being, the tests, this function should look pretty similar to the code we ran to get box score data. The URL has all of the same parameters, but `GameID` is set by a user-assigned value, `gameid`. Inside of `get_pbp`, data is retrieved by passing the URL to the `fromJSON` function (from the [**`jsonlite**`](https://github.com/jeroenooms/jsonlite) package).
 
 So, if we wanted to get the play-by-play data for the same game we looked at in the box score section, we would do the following:
 ```{r pbp ex}
@@ -99,7 +101,7 @@ head(pbp)
 
 
 
-===
+===  
 **References**
 
 [^1]: More detail on all of these functions, including `get_pbp`, can be found in Rajiv Shah's post: [“Merging NBA Play by Play data with SportVU data”](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html).
