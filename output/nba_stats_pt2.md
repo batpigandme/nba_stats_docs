@@ -11,9 +11,17 @@ Mara Averick
 
 In order to speed up the process of retrieving and parsing data from the stats.nba.api, it's a good idea to use functions for tasks that you'll be repeating. Functions can also help you avoid doing things that are easy to mess up, like finding and setting parameters, such as `GameID`, directly in the URL.  
 
-#### Defining Functions in R
+#### Defining Functions in R 
 
-The structure of a user-defined function in R (see below), is as follows: a function name set using the `<-` assignment operator, argument(s) required put in parentheses `()`, and code for what the function should do and what data it should return in curly braces `{}`. 
+In basic tersm, the structure of a user-defined function in R (see below), is as follows: a function name set using the `<-` assignment operator, argument(s) required put in parentheses `()`, and code for what the function should do and what data it should return in curly braces `{}`. 
+
+More formally, [Hadley Wickham](http://adv-r.had.co.nz/Functions.html#function-components) defines the three components of a function as:[^1]  
+
+* the `body()`, the code inside the function.  
+
+* the `formals()`, the list of arguments which controls how you can call the function.  
+
+* the `environment()`, the “map” of the location of the function’s variables.
 
 ![function structure in R](nba_stats_pt2_files/images/function_structure.png) 
 
@@ -53,6 +61,9 @@ To load those functions, we'll use `source()` when loading our libraries, but yo
 
 
 ```r
+## set up env't preferences
+options(stringsAsFactors = FALSE)
+
 ## load libraries and functions from source
 library(RCurl)
 library(jsonlite)
@@ -66,7 +77,7 @@ If you're in RStudio, the functions should appear in the **Environment** section
 
 #### Using `get_pbp`
 
-We won't be using all of these functions (some of them will not work for the current season, as certain parts of the API have been depreciated), but let's take a quick look at one of them that we will be using (**`get_pbp`**) to get a better sense of what's involved.[^1]
+We won't be using all of these functions (some of them will not work for the current season, as certain parts of the API have been depreciated), but let's take a quick look at one of them that we will be using (**`get_pbp`**) to get a better sense of what's involved.[^2]
 
 
 ```r
@@ -83,7 +94,7 @@ get_pbp <- function(gameid){
   }
 ```
 
-Ignoring, for the time being, the tests, this function should look pretty similar to the code we ran to get box score data. The URL has all of the same parameters, but `GameID` is set by a user-assigned value, `gameid`. Inside of `get_pbp`, data is retrieved by passing the URL to the `fromJSON` function (from the [**`jsonlite**`](https://github.com/jeroenooms/jsonlite) package).
+Ignoring, for the time being, the tests, this function should look pretty similar to the code we ran to get box score data. The URL has all of the same parameters, but `GameID` is set by a user-assigned value, `gameid`. Inside of `get_pbp`, data is retrieved by passing the URL to the `fromJSON` function (from the [**`jsonlite`**](https://github.com/jeroenooms/jsonlite) package).
 
 So, if we wanted to get the play-by-play data for the same game we looked at in the box score section, we would do the following:
 
@@ -186,6 +197,6 @@ pbp$range_clock2 <- (abs(((period_to_seconds(ms(pbp$PCTIMESTRING))) - 720)) + ((
 ```
 
 ===  
-**References**
-
-[^1]: More detail on all of these functions, including `get_pbp`, can be found in Rajiv Shah's post: [“Merging NBA Play by Play data with SportVU data”](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html).
+**References**  
+[^1]: For actual best practices for writing functions in R, I recommend checking out the [Functions](http://adv-r.had.co.nz/Functions.html) section of [Hadley Wickham](http://hadley.nz/)'s [_Advanced R_](http://adv-r.had.co.nz/), which is free, and online.  
+[^2]: More detail on all of these functions, including `get_pbp`, can be found in Rajiv Shah's post: [“Merging NBA Play by Play data with SportVU data”](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html).
