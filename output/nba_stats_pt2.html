@@ -288,6 +288,8 @@ pbp &lt;-<span class="st"> </span><span class="kw">get_pbp</span>(gameid)
 </div>
 <div id="dealing-with-time" class="section level3">
 <h3>Dealing with Time</h3>
+<p>Dealing with time can be a tricky business. The <a href="https://github.com/hadley/lubridate"><strong><code>lubridate</code></strong></a> library makes things a little easier, and I recommend checking out the package vignette if you want to learn more. If you look at your <code>pbp</code> data frame, you’ll see that there are two variables that contain <code>TIME</code>, one of which is a 12-minute countdown clock for each period (<code>PCTIMESTRING</code>). In order to get box score numbers, however, we’ll need time in the form of tenths of seconds elapsed since the start of the game.</p>
+<p>Below, I’ve done this operation in two ways: step-by-step, and in a single operation.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## load lubridate
 <span class="kw">library</span>(lubridate)
 
@@ -299,7 +301,11 @@ pbp$period_sec_elapsed &lt;-<span class="st"> </span><span class="kw">abs</span>
 pbp$game_sec_elapsed &lt;-<span class="st"> </span><span class="kw">abs</span>((pbp$pcsecs -<span class="st"> </span><span class="dv">720</span>)) +<span class="st"> </span>(((<span class="kw">as.numeric</span>(pbp$PERIOD)) -<span class="st"> </span><span class="dv">1</span>) *<span class="st"> </span><span class="dv">720</span>)
 ## convert to tenths of seconds for Range params
 pbp$range_clock &lt;-<span class="st"> </span>(pbp$game_sec_elapsed *<span class="st"> </span><span class="dv">10</span>)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pbp$range_clock2 &lt;-<span class="st"> </span>(<span class="kw">abs</span>(((<span class="kw">period_to_seconds</span>(<span class="kw">ms</span>(pbp$PCTIMESTRING))) -<span class="st"> </span><span class="dv">720</span>)) +<span class="st"> </span>(((<span class="kw">as.numeric</span>(pbp$PERIOD)) -<span class="st"> </span><span class="dv">1</span>) *<span class="st"> </span><span class="dv">720</span>)) *<span class="st"> </span><span class="dv">10</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## load lubridate
+<span class="kw">library</span>(lubridate)
+
+## convert PCTIMESTRING for Range params
+pbp$range_clock2 &lt;-<span class="st"> </span>(<span class="kw">abs</span>(((<span class="kw">period_to_seconds</span>(<span class="kw">ms</span>(pbp$PCTIMESTRING))) -<span class="st"> </span><span class="dv">720</span>)) +<span class="st"> </span>(((<span class="kw">as.numeric</span>(pbp$PERIOD)) -<span class="st"> </span><span class="dv">1</span>) *<span class="st"> </span><span class="dv">720</span>)) *<span class="st"> </span><span class="dv">10</span></code></pre></div>
 <p>===<br />
 <strong>References</strong><br />
 [^1]: For actual best practices for writing functions in R, I recommend checking out the <a href="http://adv-r.had.co.nz/Functions.html">Functions</a> section of <a href="http://hadley.nz/">Hadley Wickham</a>’s <a href="http://adv-r.had.co.nz/"><em>Advanced R</em></a>, which is free, and online.<br />

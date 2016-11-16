@@ -111,6 +111,10 @@ head(pbp)
 
 ### Dealing with Time
 
+Dealing with time can be a tricky business. The [**`lubridate`**](https://github.com/hadley/lubridate) library makes things a little easier, and I recommend checking out the package vignette if you want to learn more. If you look at your `pbp` data frame, you'll see that there are two variables that contain `TIME`, one of which is a 12-minute countdown clock for each period (`PCTIMESTRING`). In order to get box score numbers, however, we'll need time in the form of tenths of seconds elapsed since the start of the game.
+
+Below, I've done this operation in two ways: step-by-step, and in a single operation. 
+
 ```{r clock conversions, message=FALSE}
 ## load lubridate
 library(lubridate)
@@ -127,7 +131,10 @@ pbp$range_clock <- (pbp$game_sec_elapsed * 10)
 ```
 
 ```{r clock conv2}
+## load lubridate
+library(lubridate)
 
+## convert PCTIMESTRING for Range params
 pbp$range_clock2 <- (abs(((period_to_seconds(ms(pbp$PCTIMESTRING))) - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)) * 10
 
 ```
