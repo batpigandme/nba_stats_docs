@@ -31,7 +31,7 @@ Here's a simple function to multiply a variable, `x`, by 2, and return that valu
 ```r
 ## name and define a function for multiplying by two
 times_two <- function(x){
-  return(x*2)
+  return(x * 2)
 }
 
 ## multiply 6 by 2 with function
