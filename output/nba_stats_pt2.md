@@ -103,80 +103,66 @@ So, if we wanted to get the play-by-play data for the same game we looked at in 
 gameid <- "0041500407"
 ## retrieve pbp data
 pbp <- get_pbp(gameid)
-
-## peek at the data
-head(pbp)
 ```
 
+### What's in the play-by-play data?  
+
+Let's look at our data a bit more closely. First we'll convert our data frame to a `tbl` class-- a format that will allow us to make full use of the [**`dplyr`**](https://github.com/hadley/dplyr) package. Then we can examine the data using the `glimpse()` function, which returns a dense summary, limited to what can be viewed on the screen (i.e. no text wrapping).
+
+
+```r
+## convert to tbl_df
+pbp <- tbl_df(pbp)
+
+## glimpse the data
+glimpse(pbp)
 ```
-##      GAME_ID EVENTNUM EVENTMSGTYPE EVENTMSGACTIONTYPE PERIOD WCTIMESTRING
-## 1 0041500407        0           12                  0      1      8:11 PM
-## 2 0041500407        1           10                  0      1      8:11 PM
-## 3 0041500407        2            2                 78      1      8:12 PM
-## 4 0041500407        3            4                  0      1      8:12 PM
-## 5 0041500407        4            2                 58      1      8:12 PM
-## 6 0041500407        5            4                  0      1      8:12 PM
-##   PCTIMESTRING                            HOMEDESCRIPTION
-## 1        12:00                                       <NA>
-## 2        12:00 Jump Ball Ezeli vs. Thompson: Tip to James
-## 3        11:39                                       <NA>
-## 4        11:36                Curry REBOUND (Off:0 Def:1)
-## 5        11:18         MISS Ezeli 7' Turnaround Hook Shot
-## 6        11:17                                       <NA>
-##   NEUTRALDESCRIPTION               VISITORDESCRIPTION SCORE SCOREMARGIN
-## 1               <NA>                             <NA>  <NA>        <NA>
-## 2               <NA>                             <NA>  <NA>        <NA>
-## 3               <NA> MISS Smith 5' Floating Jump Shot  <NA>        <NA>
-## 4               <NA>                             <NA>  <NA>        <NA>
-## 5               <NA>                             <NA>  <NA>        <NA>
-## 6               <NA>      James REBOUND (Off:0 Def:1)  <NA>        <NA>
-##   PERSON1TYPE PLAYER1_ID  PLAYER1_NAME PLAYER1_TEAM_ID PLAYER1_TEAM_CITY
-## 1           0          0          <NA>            <NA>              <NA>
-## 2           4     203105  Festus Ezeli      1610612744      Golden State
-## 3           5       2747      JR Smith      1610612739         Cleveland
-## 4           4     201939 Stephen Curry      1610612744      Golden State
-## 5           4     203105  Festus Ezeli      1610612744      Golden State
-## 6           5       2544  LeBron James      1610612739         Cleveland
-##   PLAYER1_TEAM_NICKNAME PLAYER1_TEAM_ABBREVIATION PERSON2TYPE PLAYER2_ID
-## 1                  <NA>                      <NA>           0          0
-## 2              Warriors                       GSW           5     202684
-## 3             Cavaliers                       CLE           0          0
-## 4              Warriors                       GSW           0          0
-## 5              Warriors                       GSW           0          0
-## 6             Cavaliers                       CLE           0          0
-##       PLAYER2_NAME PLAYER2_TEAM_ID PLAYER2_TEAM_CITY PLAYER2_TEAM_NICKNAME
-## 1             <NA>            <NA>              <NA>                  <NA>
-## 2 Tristan Thompson      1610612739         Cleveland             Cavaliers
-## 3             <NA>            <NA>              <NA>                  <NA>
-## 4             <NA>            <NA>              <NA>                  <NA>
-## 5             <NA>            <NA>              <NA>                  <NA>
-## 6             <NA>            <NA>              <NA>                  <NA>
-##   PLAYER2_TEAM_ABBREVIATION PERSON3TYPE PLAYER3_ID PLAYER3_NAME
-## 1                      <NA>           0          0         <NA>
-## 2                       CLE           5       2544 LeBron James
-## 3                      <NA>           0          0         <NA>
-## 4                      <NA>           0          0         <NA>
-## 5                      <NA>           0          0         <NA>
-## 6                      <NA>           0          0         <NA>
-##   PLAYER3_TEAM_ID PLAYER3_TEAM_CITY PLAYER3_TEAM_NICKNAME
-## 1            <NA>              <NA>                  <NA>
-## 2      1610612739         Cleveland             Cavaliers
-## 3            <NA>              <NA>                  <NA>
-## 4            <NA>              <NA>                  <NA>
-## 5            <NA>              <NA>                  <NA>
-## 6            <NA>              <NA>                  <NA>
-##   PLAYER3_TEAM_ABBREVIATION
-## 1                      <NA>
-## 2                       CLE
-## 3                      <NA>
-## 4                      <NA>
-## 5                      <NA>
-## 6                      <NA>
+
 ```
+## Observations: 442
+## Variables: 33
+## $ GAME_ID                   <chr> "0041500407", "0041500407", "0041500...
+## $ EVENTNUM                  <chr> "0", "1", "2", "3", "4", "5", "6", "...
+## $ EVENTMSGTYPE              <chr> "12", "10", "2", "4", "2", "4", "1",...
+## $ EVENTMSGACTIONTYPE        <chr> "0", "0", "78", "0", "58", "0", "40"...
+## $ PERIOD                    <chr> "1", "1", "1", "1", "1", "1", "1", "...
+## $ WCTIMESTRING              <chr> "8:11 PM", "8:11 PM", "8:12 PM", "8:...
+## $ PCTIMESTRING              <chr> "12:00", "12:00", "11:39", "11:36", ...
+## $ HOMEDESCRIPTION           <chr> NA, "Jump Ball Ezeli vs. Thompson: T...
+## $ NEUTRALDESCRIPTION        <chr> NA, NA, NA, NA, NA, NA, NA, NA, NA, ...
+## $ VISITORDESCRIPTION        <chr> NA, NA, "MISS Smith 5' Floating Jump...
+## $ SCORE                     <chr> NA, NA, NA, NA, NA, NA, "2 - 0", NA,...
+## $ SCOREMARGIN               <chr> NA, NA, NA, NA, NA, NA, "-2", NA, NA...
+## $ PERSON1TYPE               <chr> "0", "4", "5", "4", "4", "5", "5", "...
+## $ PLAYER1_ID                <chr> "0", "203105", "2747", "201939", "20...
+## $ PLAYER1_NAME              <chr> NA, "Festus Ezeli", "JR Smith", "Ste...
+## $ PLAYER1_TEAM_ID           <chr> NA, "1610612744", "1610612739", "161...
+## $ PLAYER1_TEAM_CITY         <chr> NA, "Golden State", "Cleveland", "Go...
+## $ PLAYER1_TEAM_NICKNAME     <chr> NA, "Warriors", "Cavaliers", "Warrio...
+## $ PLAYER1_TEAM_ABBREVIATION <chr> NA, "GSW", "CLE", "GSW", "GSW", "CLE...
+## $ PERSON2TYPE               <chr> "0", "5", "0", "0", "0", "0", "5", "...
+## $ PLAYER2_ID                <chr> "0", "202684", "0", "0", "0", "0", "...
+## $ PLAYER2_NAME              <chr> NA, "Tristan Thompson", NA, NA, NA, ...
+## $ PLAYER2_TEAM_ID           <chr> NA, "1610612739", NA, NA, NA, NA, "1...
+## $ PLAYER2_TEAM_CITY         <chr> NA, "Cleveland", NA, NA, NA, NA, "Cl...
+## $ PLAYER2_TEAM_NICKNAME     <chr> NA, "Cavaliers", NA, NA, NA, NA, "Ca...
+## $ PLAYER2_TEAM_ABBREVIATION <chr> NA, "CLE", NA, NA, NA, NA, "CLE", NA...
+## $ PERSON3TYPE               <chr> "0", "5", "0", "0", "0", "0", "0", "...
+## $ PLAYER3_ID                <chr> "0", "2544", "0", "0", "0", "0", "0"...
+## $ PLAYER3_NAME              <chr> NA, "LeBron James", NA, NA, NA, NA, ...
+## $ PLAYER3_TEAM_ID           <chr> NA, "1610612739", NA, NA, NA, NA, NA...
+## $ PLAYER3_TEAM_CITY         <chr> NA, "Cleveland", NA, NA, NA, NA, NA,...
+## $ PLAYER3_TEAM_NICKNAME     <chr> NA, "Cavaliers", NA, NA, NA, NA, NA,...
+## $ PLAYER3_TEAM_ABBREVIATION <chr> NA, "CLE", NA, NA, NA, NA, NA, "CLE"...
+```
+
+As is to be expected, the play-by-play data is a sequence of events that occur, the order of which is recorded in the **`EVENTNUM`** variable. The players involved are identified by name and ID number, and, depending on team, the event is described as a string (AKA words) in the **`HOMEDESCRIPTION`**, **`NEUTRALDESCRIPTION`**, or **`VISITORDESCRIPTION`** columns. 
+
+The third and fourth columns give us **`EVENTMSGTYPE`**, and **`EVENTMSGACTIONTYPE`**. 
 
 ### Dealing with Time
 
-Dealing with time can be a tricky business. The [**`lubridate`**](https://github.com/hadley/lubridate) library makes things a little easier, and I recommend checking out the package vignette if you want to learn more. If you look at your `pbp` data frame, you'll see that there are two variables that contain `TIME`, one of which is a 12-minute countdown clock for each period (`PCTIMESTRING`). In order to get box score numbers, however, we'll need time in the form of tenths of seconds elapsed since the start of the game.
+Dealing with time can be a tricky business. The [**`lubridate`**](https://github.com/hadley/lubridate) library makes things a little easier, and I recommend checking out the package vignette if you want to learn more. If you look at your `pbp` data frame, you'll see that there are two variables that contain `TIME`, one of which is a 12-minute countdown clock for each period (`PCTIMESTRING`). In order to get box score information at the moment of a given event, however, we'll need time in the form of tenths of seconds elapsed since the start of the game.
 
 Below, I've done this operation in two ways: step-by-step, and in a single operation. 
 

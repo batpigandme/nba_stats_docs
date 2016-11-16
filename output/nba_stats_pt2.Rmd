@@ -103,15 +103,28 @@ So, if we wanted to get the play-by-play data for the same game we looked at in 
 gameid <- "0041500407"
 ## retrieve pbp data
 pbp <- get_pbp(gameid)
+```
 
-## peek at the data
-head(pbp)
+### What's in the play-by-play data?  
+
+Let's look at our data a bit more closely. First we'll convert our data frame to a `tbl` class-- a format that will allow us to make full use of the [**`dplyr`**](https://github.com/hadley/dplyr) package. Then we can examine the data using the `glimpse()` function, which returns a dense summary, limited to what can be viewed on the screen (i.e. no text wrapping).
+
+```{r pbp vars}
+## convert to tbl_df
+pbp <- tbl_df(pbp)
+
+## glimpse the data
+glimpse(pbp)
 
 ```
 
+As is to be expected, the play-by-play data is a sequence of events that occur, the order of which is recorded in the **`EVENTNUM`** variable. The players involved are identified by name and ID number, and, depending on team, the event is described as a string (AKA words) in the **`HOMEDESCRIPTION`**, **`NEUTRALDESCRIPTION`**, or **`VISITORDESCRIPTION`** columns. 
+
+The third and fourth columns give us **`EVENTMSGTYPE`**, and **`EVENTMSGACTIONTYPE`**. 
+
 ### Dealing with Time
 
-Dealing with time can be a tricky business. The [**`lubridate`**](https://github.com/hadley/lubridate) library makes things a little easier, and I recommend checking out the package vignette if you want to learn more. If you look at your `pbp` data frame, you'll see that there are two variables that contain `TIME`, one of which is a 12-minute countdown clock for each period (`PCTIMESTRING`). In order to get box score numbers, however, we'll need time in the form of tenths of seconds elapsed since the start of the game.
+Dealing with time can be a tricky business. The [**`lubridate`**](https://github.com/hadley/lubridate) library makes things a little easier, and I recommend checking out the package vignette if you want to learn more. If you look at your `pbp` data frame, you'll see that there are two variables that contain `TIME`, one of which is a 12-minute countdown clock for each period (`PCTIMESTRING`). In order to get box score information at the moment of a given event, however, we'll need time in the form of tenths of seconds elapsed since the start of the game.
 
 Below, I've done this operation in two ways: step-by-step, and in a single operation. 
 
