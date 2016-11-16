@@ -9,7 +9,7 @@ Mara Averick
 
 This is not official documentation— it's a mash-up of information I have gathered from tinkering with the API, and the hard work of those who have done this before me, including:
 
-* The extensive [“stats.nba.com Endpoint Documentation”](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation) from the [nba_py wiki](https://github.com/seemethere/nba_py/wiki/Completed-Work-Log);
+* The extensive [stats.nba.com Endpoint Documentation](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation) from the [nba_py wiki](https://github.com/seemethere/nba_py/wiki/Completed-Work-Log);
 * Daniel Welch's [“Documenting the NBA Stats API”](http://danielwelch.github.io/documenting-the-nba-stats-api.html);
 * Savvas Tjortjoglou's [“How to Track NBA Player Movements in Python”](http://savvastjortjoglou.com/nba-play-by-play-movements.html);
 * Daniel Forsyth's [“Exploring NBA Data in Python”](http://www.danielforsyth.me/exploring_nba_data_in_python/)
@@ -94,7 +94,7 @@ The values for `StartRange` and `EndRange` are **tenths of seconds**. So, to get
 
 ## Parsing Box Score JSON with R
 
-Here we'll be retrieving box score data from stats.nba.com for the aforementioned Game 7 using parameters set directly in the URL.  
+Here we'll be retrieving box score data from stats.nba.com for the aforementioned Game 7 using parameters set directly in the URL. For lack of a better term, I'll just call this _“the messy way.”_
 
 Note that, as always, if you're running the R code yourself, you'll need to install any libraries/packages you don't already have, which you do by running `install.packages("packagename")`.  
 
@@ -228,6 +228,7 @@ rowsets_tbl <- read_csv("~/data/rowsets_tbl.csv", col_types = cols(MIN = col_cha
 ```
 
 
+
 ===
 
 **sessionInfo**
@@ -266,3 +267,10 @@ sessionInfo()
 ## [25] backports_1.0.4
 ```
 
+===  
+
+**References**  
+
+[^1]: See the `nba_py` [Endpoint Documentation](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation)  
+
+[^2]: See Greg Reda's [“Web Scraping 201: finding the API”](http://www.gregreda.com/2015/02/15/web-scraping-finding-the-api/), and Daniel Forsyth's [“Exploring NBA Data in Python”](http://www.danielforsyth.me/exploring_nba_data_in_python/) for details on how to identify `GameID` and other parameter values.   
