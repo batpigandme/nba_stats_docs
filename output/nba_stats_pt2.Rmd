@@ -17,9 +17,31 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Streamlining the Data Retrieval Process
 
-### Using Functions
+### Functions
 
-In order to speed up the process of retrieving and parsing data from the stats.nba.api, it's a good idea to use functions for tasks that you'll be repeating. Luckily, we don't have to start from scratch, as Rajiv Shah's [_functions.R](https://github.com/rajshah4/NBA_SportVu/blob/master/_functions.R) from his [NBA_SportVu](https://github.com/rajshah4/NBA_SportVu) repo already contains much of what we'll need.
+In order to speed up the process of retrieving and parsing data from the stats.nba.api, it's a good idea to use functions for tasks that you'll be repeating. Functions can also help you avoid doing things that are easy to mess up, like finding and setting parameters, such as `GameID`, directly in the URL.  
+
+#### Defining Functions in R
+
+The structure of a user-defined function in R (see below), is as follows: a function name set using the `<-` assignment operator, argument(s) required put in parentheses `()`, and code for what the function should do and what data it should return in curly braces `{}`. 
+
+![function structure in R](nba_stats_pt2_files/images/function_structure.png) 
+
+Here's a simple function to multiply a variable, `x`, by 2, and return that value. Once I've defined that function, I can use it by passing it a value (argument).
+
+```{r times two}
+## name and define a function for multiplying by two
+times_two <- function(x){
+  return(x*2)
+}
+
+## multiply 6 by 2 with function
+times_two(6)
+```
+
+#### Loading Functions Into R
+
+As far as functions go for retrieving data from stats.nba.com goes, we don't have to start from scratch. Rajiv Shah's [_functions.R](https://github.com/rajshah4/NBA_SportVu/blob/master/_functions.R) in his [NBA_SportVu](https://github.com/rajshah4/NBA_SportVu) repo already contains much of what we'll need.
 
 To load those functions, we'll use `source()` when loading our libraries, but you'll need to download the file in order for this to work on your own machine.
 
@@ -53,7 +75,5 @@ get_pbp <- function(gameid){
 
 ```
 
-The basic structure of a user-defined function in R involves a function name, arguments that need to be passed to the function, and the code telling for what the function should do and what data it should return. 
 
-![function structure in R](nba_stats_pt2_files/images/function_structure.png)
 
