@@ -163,7 +163,27 @@ head(pbp)
 ## 6                      <NA>
 ```
 
+### Dealing with Time
 
+
+```r
+## load lubridate
+library(lubridate)
+
+## convert PCTIME to seconds
+pbp$pcsecs <- period_to_seconds(ms(pbp$PCTIMESTRING))
+## get period seconds elapsed
+pbp$period_sec_elapsed <- abs((pbp$pcsecs - 720))
+## convert to game seconds elapsed
+pbp$game_sec_elapsed <- abs((pbp$pcsecs - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)
+## convert to tenths of seconds for Range params
+pbp$range_clock <- (pbp$game_sec_elapsed * 10)
+```
+
+
+```r
+pbp$range_clock2 <- (abs(((period_to_seconds(ms(pbp$PCTIMESTRING))) - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)) * 10
+```
 
 ===  
 **References**

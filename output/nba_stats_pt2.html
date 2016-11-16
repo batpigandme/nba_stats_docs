@@ -275,9 +275,24 @@ pbp &lt;-<span class="st"> </span><span class="kw">get_pbp</span>(gameid)
 ## 4                      &lt;NA&gt;
 ## 5                      &lt;NA&gt;
 ## 6                      &lt;NA&gt;</code></pre>
+</div>
+</div>
+<div id="dealing-with-time" class="section level3">
+<h3>Dealing with Time</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## load lubridate
+<span class="kw">library</span>(lubridate)
+
+## convert PCTIME to seconds
+pbp$pcsecs &lt;-<span class="st"> </span><span class="kw">period_to_seconds</span>(<span class="kw">ms</span>(pbp$PCTIMESTRING))
+## get period seconds elapsed
+pbp$period_sec_elapsed &lt;-<span class="st"> </span><span class="kw">abs</span>((pbp$pcsecs -<span class="st"> </span><span class="dv">720</span>))
+## convert to game seconds elapsed
+pbp$game_sec_elapsed &lt;-<span class="st"> </span><span class="kw">abs</span>((pbp$pcsecs -<span class="st"> </span><span class="dv">720</span>)) +<span class="st"> </span>(((<span class="kw">as.numeric</span>(pbp$PERIOD)) -<span class="st"> </span><span class="dv">1</span>) *<span class="st"> </span><span class="dv">720</span>)
+## convert to tenths of seconds for Range params
+pbp$range_clock &lt;-<span class="st"> </span>(pbp$game_sec_elapsed *<span class="st"> </span><span class="dv">10</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pbp$range_clock2 &lt;-<span class="st"> </span>(<span class="kw">abs</span>(((<span class="kw">period_to_seconds</span>(<span class="kw">ms</span>(pbp$PCTIMESTRING))) -<span class="st"> </span><span class="dv">720</span>)) +<span class="st"> </span>(((<span class="kw">as.numeric</span>(pbp$PERIOD)) -<span class="st"> </span><span class="dv">1</span>) *<span class="st"> </span><span class="dv">720</span>)) *<span class="st"> </span><span class="dv">10</span></code></pre></div>
 <p>===<br />
 <strong>References</strong></p>
-</div>
 </div>
 </div>
 <div class="footnotes">
