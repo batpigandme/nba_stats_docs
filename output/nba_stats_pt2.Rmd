@@ -27,9 +27,10 @@ The structure of a user-defined function in R (see below), is as follows: a func
 
 ![function structure in R](nba_stats_pt2_files/images/function_structure.png) 
 
-Here's a simple function to multiply a variable, `x`, by 2, and return that value. Once I've defined that function, I can use it by passing it a value (argument).
+Here's a simple function to multiply a variable, `x`, by 2, and return that value. Once I've defined that function, I can use it by passing it a value (argument) either directly, or indirectly by assigning a value to `x`.
 
 ```{r times two}
+
 ## name and define a function for multiplying by two
 times_two <- function(x){
   return(x*2)
@@ -37,6 +38,12 @@ times_two <- function(x){
 
 ## multiply 6 by 2 with function
 times_two(6)
+
+## assign x value
+x <- 4
+## use function with x
+times_two(x)
+
 ```
 
 #### Loading Functions Into R
@@ -75,5 +82,24 @@ get_pbp <- function(gameid){
 
 ```
 
+Ignoring, for the time being, the tests, this function should look pretty similar to the code we ran to get box score data. The URL has all of the same parameters, but `GameID` is set by a user-assigned value, `gameid`.[^1]
+
+So, if we wanted to get the play-by-play data for the same game we looked at in the box score section, we would do the following:
+```{r pbp ex}
+
+## set gameid
+gameid <- "0041500407"
+## retrieve pbp data
+pbp <- get_pbp(gameid)
+
+## peek at the data
+head(pbp)
+
+```
 
 
+
+===
+**References**
+
+[^1]: More detail on all of these functions, including `get_pbp`, can be found in Rajiv Shah's post: [“Merging NBA Play by Play data with SportVU data”](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html).
