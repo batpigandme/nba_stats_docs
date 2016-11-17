@@ -120,13 +120,32 @@ glimpse(pbp)
 
 As is to be expected, the play-by-play data is a sequence of events that occur, the order of which is recorded in the **`EVENTNUM`** variable. The players involved are identified by name and ID number, and, depending on team, the event is described as a string (AKA words) in the **`HOMEDESCRIPTION`**, **`NEUTRALDESCRIPTION`**, or **`VISITORDESCRIPTION`** columns. 
 
-The third and fourth columns give us **`EVENTMSGTYPE`**, and **`EVENTMSGACTIONTYPE`**. 
+The third and fourth columns give us **`EVENTMSGTYPE`**, and **`EVENTMSGACTIONTYPE`**, which correspond to the event type, and what happened. For example, let's take a look at the 212th play logged.  
+```{r event 212}
+## get event record by EVENTNUM
+event_212 <- filter(pbp, EVENTNUM == "212")
+
+glimpse(event_212)
+```
+This was a pull-up jumper, made by Draymond Green. The `EVENTMSGTYPE`, 1, indicates a "make"; and the `EVENTMSGACTIONTYPE`, 79, corresponds to _"Pullup Jump Shot"_ in the description.  
+
+Not every message type has an action type, which makes sense, since you won't have a driving-hook substitution. Also, the meaning of the action type depends on the message type. For the EVENTMSGACTIONTYPE 1 indicates a jump shot for shooting EVENTMSGTYPEs (i.e. makes and misses), but, for EVENTMSGTYPE 9, a timeout, an EVENTMSGACTIONTYPE of 1 means it was a full timeout. For practical purposes, this means that if you are looking for a certain action type, you should always specify both the message _and_ action type.  
+
+I have yet to come across a formal _“data dictionary”_, with respect to these. However, Rajiv Shah's [documentation](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html) will suffice for our purposes. [If you have any to add, or any corrections, please message me, or submit it as an issue for this page on GitHub. ]
+
+#### EVENTMSGTYPE  
+**1** - Make; **2** - Miss; **3** - Free Throw; **4** - Rebound; **5** - Out-of-Bounds / Turnover / Steal; **6** - Personal Foul; **7** - Violation; **8** - Substitution; **9** - Timeout; **10** - Jumpball; **12** - Start Q1(?); **13** - Start Q2(?)
+
+#### EVENTMSGACTIONTYPE    
+**1** - Jumpshot/Full Timeout; **2** - Lost ball Turnover; **3** - ?; **4** - Traveling Turnover / Off Foul; **5** - Layup; **7** - Dunk; **10** - Free throw 1-1; **11** - Free throw 1-2; **12** - Free throw 2-2; **40** - Out of bounds; **41** - Block/Steal; **42** - Driving Layup; **50** - Running Dunk; **52** - Alley Oop Dunk; **55** - Hook Shot; **57** - Driving Hook Shot; **58** - Turnaround hook shot; **66** - Jump Bank Shot; **71** - Finger Roll Layup; **72** - Putback Layup; **79** - Pullup Jump Shot; **108** - Cutting Dunk Shot
 
 ### Dealing with Time
 
-Dealing with time can be a tricky business. The [**`lubridate`**](https://github.com/hadley/lubridate) library makes things a little easier, and I recommend checking out the package vignette if you want to learn more. If you look at your `pbp` data frame, you'll see that there are two variables that contain `TIME`, one of which is a 12-minute countdown clock for each period (`PCTIMESTRING`). In order to get box score information at the moment of a given event, however, we'll need time in the form of tenths of seconds elapsed since the start of the game.
+Dealing with dates and time can be a tricky business.[^3] The [**`lubridate`**](https://github.com/hadley/lubridate) library makes things a little easier, and I recommend checking out the package vignette if you want to learn more. 
 
-Below, I've done this operation in two ways: step-by-step, and in a single operation. 
+In the play-by-play data we've loaded, there are two variables that contain `TIME`, one of which is a 12-minute countdown clock for each period (`PCTIMESTRING`). Since we want to look at this information relative to box score data, we'll need time in the form of tenths of seconds elapsed since the start of the game.
+
+Below, I've done this in two ways: step-by-step (wherein each step becomes a new variable), and as a single operation. 
 
 ```{r clock conversions, message=FALSE}
 ## load lubridate
@@ -155,4 +174,5 @@ pbp$range_clock2 <- (abs(((period_to_seconds(ms(pbp$PCTIMESTRING))) - 720)) + ((
 ===  
 **References**  
 [^1]: For actual best practices for writing functions in R, I recommend checking out the [Functions](http://adv-r.had.co.nz/Functions.html) section of [Hadley Wickham](http://hadley.nz/)'s [_Advanced R_](http://adv-r.had.co.nz/), which is free, and online.  
-[^2]: More detail on all of these functions, including `get_pbp`, can be found in Rajiv Shah's post: [“Merging NBA Play by Play data with SportVU data”](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html).
+[^2]: More detail on all of these functions, including `get_pbp`, can be found in Rajiv Shah's post: [“Merging NBA Play by Play data with SportVU data”](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html).  
+[^3]: I recommend the [Time Data Types](http://www.cyclismo.org/tutorial/R/time.html) section of Kelly Black's intro-level [R Tutorial](http://www.cyclismo.org/tutorial/R/index.html) for a concise overview of working with dates and time using base R.
