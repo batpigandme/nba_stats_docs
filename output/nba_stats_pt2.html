@@ -268,52 +268,28 @@ pbp &lt;-<span class="st"> </span><span class="kw">tbl_df</span>(pbp)
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## get event record by EVENTNUM
 event_212 &lt;-<span class="st"> </span><span class="kw">filter</span>(pbp, EVENTNUM ==<span class="st"> &quot;212&quot;</span>)
 
-<span class="kw">glimpse</span>(event_212)</code></pre></div>
-<pre><code>## Observations: 1
-## Variables: 33
-## $ GAME_ID                   &lt;chr&gt; &quot;0041500407&quot;
-## $ EVENTNUM                  &lt;chr&gt; &quot;212&quot;
-## $ EVENTMSGTYPE              &lt;chr&gt; &quot;1&quot;
-## $ EVENTMSGACTIONTYPE        &lt;chr&gt; &quot;79&quot;
-## $ PERIOD                    &lt;chr&gt; &quot;2&quot;
-## $ WCTIMESTRING              &lt;chr&gt; &quot;9:01 PM&quot;
-## $ PCTIMESTRING              &lt;chr&gt; &quot;3:45&quot;
-## $ HOMEDESCRIPTION           &lt;chr&gt; &quot;Green 26' 3PT Pullup Jump Shot (19 ...
-## $ NEUTRALDESCRIPTION        &lt;chr&gt; NA
-## $ VISITORDESCRIPTION        &lt;chr&gt; NA
-## $ SCORE                     &lt;chr&gt; &quot;38 - 41&quot;
-## $ SCOREMARGIN               &lt;chr&gt; &quot;3&quot;
-## $ PERSON1TYPE               &lt;chr&gt; &quot;4&quot;
-## $ PLAYER1_ID                &lt;chr&gt; &quot;203110&quot;
-## $ PLAYER1_NAME              &lt;chr&gt; &quot;Draymond Green&quot;
-## $ PLAYER1_TEAM_ID           &lt;chr&gt; &quot;1610612744&quot;
-## $ PLAYER1_TEAM_CITY         &lt;chr&gt; &quot;Golden State&quot;
-## $ PLAYER1_TEAM_NICKNAME     &lt;chr&gt; &quot;Warriors&quot;
-## $ PLAYER1_TEAM_ABBREVIATION &lt;chr&gt; &quot;GSW&quot;
-## $ PERSON2TYPE               &lt;chr&gt; &quot;4&quot;
-## $ PLAYER2_ID                &lt;chr&gt; &quot;2738&quot;
-## $ PLAYER2_NAME              &lt;chr&gt; &quot;Andre Iguodala&quot;
-## $ PLAYER2_TEAM_ID           &lt;chr&gt; &quot;1610612744&quot;
-## $ PLAYER2_TEAM_CITY         &lt;chr&gt; &quot;Golden State&quot;
-## $ PLAYER2_TEAM_NICKNAME     &lt;chr&gt; &quot;Warriors&quot;
-## $ PLAYER2_TEAM_ABBREVIATION &lt;chr&gt; &quot;GSW&quot;
-## $ PERSON3TYPE               &lt;chr&gt; &quot;0&quot;
-## $ PLAYER3_ID                &lt;chr&gt; &quot;0&quot;
-## $ PLAYER3_NAME              &lt;chr&gt; NA
-## $ PLAYER3_TEAM_ID           &lt;chr&gt; NA
-## $ PLAYER3_TEAM_CITY         &lt;chr&gt; NA
-## $ PLAYER3_TEAM_NICKNAME     &lt;chr&gt; NA
-## $ PLAYER3_TEAM_ABBREVIATION &lt;chr&gt; NA</code></pre>
+## look at EVENTMSG and ACTIONTYPE
+<span class="kw">select</span>(event_212, <span class="dv">1</span>:<span class="dv">4</span>)</code></pre></div>
+<pre><code>## # A tibble: 1 × 4
+##      GAME_ID EVENTNUM EVENTMSGTYPE EVENTMSGACTIONTYPE
+##        &lt;chr&gt;    &lt;chr&gt;        &lt;chr&gt;              &lt;chr&gt;
+## 1 0041500407      212            1                 79</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## look at description
+<span class="kw">select</span>(event_212, <span class="dv">8</span>)</code></pre></div>
+<pre><code>## # A tibble: 1 × 1
+##                                            HOMEDESCRIPTION
+##                                                      &lt;chr&gt;
+## 1 Green 26' 3PT Pullup Jump Shot (19 PTS) (Iguodala 3 AST)</code></pre>
 <p>This was a pull-up jumper, made by Draymond Green. The <code>EVENTMSGTYPE</code>, 1, indicates a “make”; and the <code>EVENTMSGACTIONTYPE</code>, 79, corresponds to <em>“Pullup Jump Shot”</em> in the description.</p>
 <p>Not every message type has an action type, which makes sense, since you won’t have a driving-hook substitution. Also, the meaning of the action type depends on the message type. For the EVENTMSGACTIONTYPE 1 indicates a jump shot for shooting EVENTMSGTYPEs (i.e. makes and misses), but, for EVENTMSGTYPE 9, a timeout, an EVENTMSGACTIONTYPE of 1 means it was a full timeout. For practical purposes, this means that if you are looking for a certain action type, you should always specify both the message <em>and</em> action type.</p>
-<p>I have yet to come across a formal <em>“data dictionary”</em>, with respect to these. However, Rajiv Shah’s <a href="http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html">documentation</a> will suffice for our purposes. [If you have any to add, or any corrections, please message me, or submit it as an issue for this page on GitHub. ]</p>
+<p>I have yet to come across a formal <em>“data dictionary”</em>, with respect to these. However, Rajiv Shah’s <a href="http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html">documentation</a>, with a few additions I’ve found will suffice for our purposes. [If you have any to add, or any corrections, please message me, or submit it as an issue for this page on GitHub. ]</p>
 <div id="eventmsgtype" class="section level4">
-<h4>EVENTMSGTYPE</h4>
+<h4><strong>EVENTMSGTYPE</strong></h4>
 <p><strong>1</strong> - Make; <strong>2</strong> - Miss; <strong>3</strong> - Free Throw; <strong>4</strong> - Rebound; <strong>5</strong> - Out-of-Bounds / Turnover / Steal; <strong>6</strong> - Personal Foul; <strong>7</strong> - Violation; <strong>8</strong> - Substitution; <strong>9</strong> - Timeout; <strong>10</strong> - Jumpball; <strong>12</strong> - Start Q1(?); <strong>13</strong> - Start Q2(?)</p>
 </div>
 <div id="eventmsgactiontype" class="section level4">
-<h4>EVENTMSGACTIONTYPE</h4>
-<p><strong>1</strong> - Jumpshot/Full Timeout; <strong>2</strong> - Lost ball Turnover; <strong>3</strong> - ?; <strong>4</strong> - Traveling Turnover / Off Foul; <strong>5</strong> - Layup; <strong>7</strong> - Dunk; <strong>10</strong> - Free throw 1-1; <strong>11</strong> - Free throw 1-2; <strong>12</strong> - Free throw 2-2; <strong>40</strong> - Out of bounds; <strong>41</strong> - Block/Steal; <strong>42</strong> - Driving Layup; <strong>50</strong> - Running Dunk; <strong>52</strong> - Alley Oop Dunk; <strong>55</strong> - Hook Shot; <strong>57</strong> - Driving Hook Shot; <strong>58</strong> - Turnaround hook shot; <strong>66</strong> - Jump Bank Shot; <strong>71</strong> - Finger Roll Layup; <strong>72</strong> - Putback Layup; <strong>79</strong> - Pullup Jump Shot; <strong>108</strong> - Cutting Dunk Shot</p>
+<h4><strong>EVENTMSGACTIONTYPE</strong></h4>
+<p><strong>1</strong> - Jumpshot/Full Timeout; <strong>2</strong> - Lost Ball Turnover; <strong>3</strong> - ?; <strong>4</strong> - Traveling Turnover / Offensive Foul; <strong>5</strong> - Kicked Ball/Layup(?); <strong>7</strong> - Dunk; <strong>10</strong> - Free throw 1-1; <strong>11</strong> - Free Throw 1 of 2; <strong>12</strong> - Free Throw 2 of 2; <strong>13</strong> Free Throw 1 of 3; <strong>14</strong> Free Throw 2 of 3; <strong>15</strong> Free Throw 3 of 3; <strong>30</strong> - Out of bounds; <strong>40</strong> - Layup; <strong>41</strong> - Running Layup; <strong>42</strong> - Driving Layup; <strong>47</strong> - Turnaround Jump Shot; <strong>50</strong> - Running Dunk; <strong>52</strong> - Alley Oop Dunk; <strong>55</strong> - Hook Shot; <strong>57</strong> - Driving Hook Shot; <strong>58</strong> - Turnaround Hook Shot; <strong>66</strong> - Jump Bank Shot; <strong>71</strong> - Finger Roll Layup; <strong>72</strong> - Putback Layup; <strong>79</strong> - Pullup Jump Shot; <strong>86</strong> Turnaround Fadeaway Shot; <strong>108</strong> - Cutting Dunk Shot</p>
 </div>
 </div>
 <div id="dealing-with-time" class="section level3">
