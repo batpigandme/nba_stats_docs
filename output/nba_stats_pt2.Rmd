@@ -138,7 +138,7 @@ This was a pull-up jumper, made by Draymond Green. The `EVENTMSGTYPE`, 1, indica
 
 Not every message type has an action type, which makes sense, since you won't have a driving-hook substitution. Also, the meaning of the action type depends on the message type. For the EVENTMSGACTIONTYPE 1 indicates a jump shot for shooting EVENTMSGTYPEs (i.e. makes and misses), but, for EVENTMSGTYPE 9, a timeout, an EVENTMSGACTIONTYPE of 1 means it was a full timeout. For practical purposes, this means that if you are looking for a certain action type, you should always specify both the message _and_ action type.  
 
-I have yet to come across a formal _“data dictionary”_, with respect to these. However, Rajiv Shah's [documentation](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html), with a few additions I've found will suffice for our purposes. _[If you have any to add, or any corrections, please message me, or submit it as an issue for this page on GitHub. ]_
+I have yet to come across a formal _“data dictionary”_, with respect to these. However, Rajiv Shah's [documentation](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html), with a few additions I've found will suffice for our purposes. _[If you have any to add, or any corrections, please message me, or submit it as an issue for [this page](https://github.com/batpigandme/nba_stats_docs) on GitHub.]_
 
 #### **EVENTMSGTYPE**  
 **1** - Make; **2** - Miss; **3** - Free Throw; **4** - Rebound; **5** - Out-of-Bounds / Turnover / Steal; **6** - Personal Foul; **7** - Violation; **8** - Substitution; **9** - Timeout; **10** - Jumpball; **12** - Start Q1(?); **13** - Start Q2(?)
@@ -211,7 +211,7 @@ Since manually editing the box score endpoint URL would be time consuming, and a
 ## define function to get boxscoretraditionalv2
 get_boxtrad <- function(gameid, startrange, endrange){
   #Grabs the box score data from NBA site
-  URL1 <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=10&EndRange=",endrange,"&GameID=",gameid,"&RangeType=2&StartPeriod=1&StartRange=",startrange,"", sep = "")
+  URL1 <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=1&EndRange=",endrange,"&GameID=",gameid,"&RangeType=2&StartPeriod=1&StartRange=",startrange,"", sep = "")
   df<-fromJSON(URL1)
   test <- unlist(df$resultSets$rowSet[[1]])
   test1 <- as.data.frame(test)
@@ -225,19 +225,22 @@ get_boxtrad <- function(gameid, startrange, endrange){
 
 ```
 
-In addition to `gameid`, this function also requires us to set `startrange` and `endrange` parameters in order for it to run. 
+In addition to `gameid`, this function also requires us to set `startrange` and `endrange` parameters in order for it to run. We'll set the start to 0 (the beginning of the game), and the end to the value of `range_clock2` at the time of the first substitution.   
 ```{r}
 ## set arguments
 gameid <- "0041500407"
 startrange <- "0"
-endrange <- "9999"
+endrange <- "3020"
 
 ## get_boxtrad
 boxscore_3020 <- get_boxtrad(gameid, startrange, endrange)
 
-
+## glimpse results
+glimpse(boxscore_3020)
 ```
+Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 "events" of the game, as indicated by the `EVENTNUM` in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to returne _only_ the `PLAYER_ID` and/or `PLAYER_NAME` data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court. 
 
+The same concept holds for any of the [stats.nba.com endpoints](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation), though, of course, the specifics (such as specifying data types, etc.) will vary. 
 
 ===  
 **References**  
