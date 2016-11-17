@@ -164,57 +164,39 @@ The third and fourth columns give us **`EVENTMSGTYPE`**, and **`EVENTMSGACTIONTY
 ## get event record by EVENTNUM
 event_212 <- filter(pbp, EVENTNUM == "212")
 
-glimpse(event_212)
+## look at EVENTMSG and ACTIONTYPE
+select(event_212, 1:4)
 ```
 
 ```
-## Observations: 1
-## Variables: 33
-## $ GAME_ID                   <chr> "0041500407"
-## $ EVENTNUM                  <chr> "212"
-## $ EVENTMSGTYPE              <chr> "1"
-## $ EVENTMSGACTIONTYPE        <chr> "79"
-## $ PERIOD                    <chr> "2"
-## $ WCTIMESTRING              <chr> "9:01 PM"
-## $ PCTIMESTRING              <chr> "3:45"
-## $ HOMEDESCRIPTION           <chr> "Green 26' 3PT Pullup Jump Shot (19 ...
-## $ NEUTRALDESCRIPTION        <chr> NA
-## $ VISITORDESCRIPTION        <chr> NA
-## $ SCORE                     <chr> "38 - 41"
-## $ SCOREMARGIN               <chr> "3"
-## $ PERSON1TYPE               <chr> "4"
-## $ PLAYER1_ID                <chr> "203110"
-## $ PLAYER1_NAME              <chr> "Draymond Green"
-## $ PLAYER1_TEAM_ID           <chr> "1610612744"
-## $ PLAYER1_TEAM_CITY         <chr> "Golden State"
-## $ PLAYER1_TEAM_NICKNAME     <chr> "Warriors"
-## $ PLAYER1_TEAM_ABBREVIATION <chr> "GSW"
-## $ PERSON2TYPE               <chr> "4"
-## $ PLAYER2_ID                <chr> "2738"
-## $ PLAYER2_NAME              <chr> "Andre Iguodala"
-## $ PLAYER2_TEAM_ID           <chr> "1610612744"
-## $ PLAYER2_TEAM_CITY         <chr> "Golden State"
-## $ PLAYER2_TEAM_NICKNAME     <chr> "Warriors"
-## $ PLAYER2_TEAM_ABBREVIATION <chr> "GSW"
-## $ PERSON3TYPE               <chr> "0"
-## $ PLAYER3_ID                <chr> "0"
-## $ PLAYER3_NAME              <chr> NA
-## $ PLAYER3_TEAM_ID           <chr> NA
-## $ PLAYER3_TEAM_CITY         <chr> NA
-## $ PLAYER3_TEAM_NICKNAME     <chr> NA
-## $ PLAYER3_TEAM_ABBREVIATION <chr> NA
+## # A tibble: 1 × 4
+##      GAME_ID EVENTNUM EVENTMSGTYPE EVENTMSGACTIONTYPE
+##        <chr>    <chr>        <chr>              <chr>
+## 1 0041500407      212            1                 79
+```
+
+```r
+## look at description
+select(event_212, 8)
+```
+
+```
+## # A tibble: 1 × 1
+##                                            HOMEDESCRIPTION
+##                                                      <chr>
+## 1 Green 26' 3PT Pullup Jump Shot (19 PTS) (Iguodala 3 AST)
 ```
 This was a pull-up jumper, made by Draymond Green. The `EVENTMSGTYPE`, 1, indicates a "make"; and the `EVENTMSGACTIONTYPE`, 79, corresponds to _"Pullup Jump Shot"_ in the description.  
 
 Not every message type has an action type, which makes sense, since you won't have a driving-hook substitution. Also, the meaning of the action type depends on the message type. For the EVENTMSGACTIONTYPE 1 indicates a jump shot for shooting EVENTMSGTYPEs (i.e. makes and misses), but, for EVENTMSGTYPE 9, a timeout, an EVENTMSGACTIONTYPE of 1 means it was a full timeout. For practical purposes, this means that if you are looking for a certain action type, you should always specify both the message _and_ action type.  
 
-I have yet to come across a formal _“data dictionary”_, with respect to these. However, Rajiv Shah's [documentation](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html) will suffice for our purposes. [If you have any to add, or any corrections, please message me, or submit it as an issue for this page on GitHub. ]
+I have yet to come across a formal _“data dictionary”_, with respect to these. However, Rajiv Shah's [documentation](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html), with a few additions I've found will suffice for our purposes. [If you have any to add, or any corrections, please message me, or submit it as an issue for this page on GitHub. ]
 
-#### EVENTMSGTYPE  
+#### **EVENTMSGTYPE**  
 **1** - Make; **2** - Miss; **3** - Free Throw; **4** - Rebound; **5** - Out-of-Bounds / Turnover / Steal; **6** - Personal Foul; **7** - Violation; **8** - Substitution; **9** - Timeout; **10** - Jumpball; **12** - Start Q1(?); **13** - Start Q2(?)
 
-#### EVENTMSGACTIONTYPE    
-**1** - Jumpshot/Full Timeout; **2** - Lost ball Turnover; **3** - ?; **4** - Traveling Turnover / Off Foul; **5** - Layup; **7** - Dunk; **10** - Free throw 1-1; **11** - Free throw 1-2; **12** - Free throw 2-2; **40** - Out of bounds; **41** - Block/Steal; **42** - Driving Layup; **50** - Running Dunk; **52** - Alley Oop Dunk; **55** - Hook Shot; **57** - Driving Hook Shot; **58** - Turnaround hook shot; **66** - Jump Bank Shot; **71** - Finger Roll Layup; **72** - Putback Layup; **79** - Pullup Jump Shot; **108** - Cutting Dunk Shot
+#### **EVENTMSGACTIONTYPE**   
+**1** - Jumpshot/Full Timeout; **2** - Lost Ball Turnover; **3** - ?; **4** - Traveling Turnover / Offensive Foul; **5** - Kicked Ball/Layup(?); **7** - Dunk; **10** - Free throw 1-1; **11** - Free Throw 1 of 2; **12** - Free Throw 2 of 2; **13** Free Throw 1 of 3; **14** Free Throw 2 of 3; **15** Free Throw 3 of 3; **30** - Out of bounds; **40** - Layup; **41** - Running Layup; **42** - Driving Layup; **47** - Turnaround Jump Shot; **50** - Running Dunk; **52** - Alley Oop Dunk; **55** - Hook Shot; **57** - Driving Hook Shot; **58** - Turnaround Hook Shot; **66** - Jump Bank Shot; **71** - Finger Roll Layup; **72** - Putback Layup; **79** - Pullup Jump Shot; **86** Turnaround Fadeaway Shot; **108** - Cutting Dunk Shot  
 
 ### Dealing with Time
 
@@ -247,6 +229,7 @@ library(lubridate)
 ## convert PCTIMESTRING for Range params
 pbp$range_clock2 <- (abs(((period_to_seconds(ms(pbp$PCTIMESTRING))) - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)) * 10
 ```
+
 
 ===  
 **References**  
