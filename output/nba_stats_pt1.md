@@ -1,17 +1,7 @@
----
-title: "NBA Stats API -- Box Score Data"
-author: "Mara Averick"
-output: 
-  html_document:
-    theme: yeti
-    highlight: tango
-    fig_caption: false
-    keep_md: true
----
+# NBA Stats API Part I -- Box Score Basics
+Mara Averick  
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 #### ** **A Work in Progress** **
 
@@ -45,12 +35,14 @@ The parameters follow a question mark that comes at the end of the endpoint name
 
 While the full URL might look something like this:
 
-```{r, eval=FALSE}
+
+```r
 `http://stats.nba.com/stats/boxscoreadvancedv2?EndPeriod=10&EndRange=55800&GameID=0041500407&RangeType=2&StartPeriod=1&StartRange=0`
 ```
 
 The JSON retrieved, then, identifies the parameter settings as such:
-```{r, eval=FALSE}
+
+```r
 parameters: {
 
     "GameID": "0041500407",
@@ -106,7 +98,8 @@ Here we'll be retrieving box score data from stats.nba.com for the aforementione
 
 Note that, as always, if you're running the R code yourself, you'll need to install any libraries/packages you don't already have, which you do by running `install.packages("packagename")`.  
 
-```{r boxscore JSON, message=FALSE, warning=FALSE}
+
+```r
 ## strings as factors to FALSE
 options(stringsAsFactors = FALSE)
 
@@ -121,7 +114,8 @@ df <- fromJSON("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=10&En
 
 Let's look at the parameters to make sure they match up with what we were expecting, based on the URL.
 
-```{r params, warning=FALSE}
+
+```r
 ## unlist parameters from JSON
 params <- unlist(df$parameters)
 
@@ -129,17 +123,38 @@ params <- unlist(df$parameters)
 params
 ```
 
+```
+##       GameID  StartPeriod    EndPeriod   StartRange     EndRange 
+## "0041500407"          "1"         "10"          "0"      "55800" 
+##    RangeType 
+##          "2"
+```
+
 Note that the entire game is captured, regardless of `RangeType` here, as the `Period` and `Range` parameters are greater than the game's actual duration.
 
 
 If we look at the `resultSets` from the JSON, we can see that there are actually three different sets of results nested in the JSON: **`PlayerStats`**, **`TeamStats`**, and **`TeamStarterBenchStats`**.
 
-```{r resultSets, warning=FALSE}
+
+```r
 ## get resultSet from JSON
 resultSets <- df[['resultSets']]
 
 ## view structure of resultSet
 str(resultSets)
+```
+
+```
+## 'data.frame':	3 obs. of  3 variables:
+##  $ name   : chr  "PlayerStats" "TeamStats" "TeamStarterBenchStats"
+##  $ headers:List of 3
+##   ..$ : chr  "GAME_ID" "TEAM_ID" "TEAM_ABBREVIATION" "TEAM_CITY" ...
+##   ..$ : chr  "GAME_ID" "TEAM_ID" "TEAM_NAME" "TEAM_ABBREVIATION" ...
+##   ..$ : chr  "GAME_ID" "TEAM_ID" "TEAM_NAME" "TEAM_ABBREVIATION" ...
+##  $ rowSet :List of 3
+##   ..$ : chr [1:18, 1:28] "0041500407" "0041500407" "0041500407" "0041500407" ...
+##   ..$ : chr [1:2, 1:25] "0041500407" "0041500407" "1610612744" "1610612739" ...
+##   ..$ : chr [1:4, 1:25] "0041500407" "0041500407" "0041500407" "0041500407" ...
 ```
 
 The structure of the new `resultSets` data frame isn't useful for analysis in R. The end goal is usually [*Tidy Data*](http://www.jstatsoft.org/v59/i10/paper), but, at this point, we're just aiming for something that doesn't involve two columns of lists -- in this case, the **`PlayerStats`**. 
@@ -148,8 +163,8 @@ The structure of the new `resultSets` data frame isn't useful for analysis in R.
 
 This code below is a bit messy at the moment, which is OK for now, since we'll actually only be looking for specific values from the box score moving forward-- it's also often the nature of working with JSON in R. However, (_note to self_), I could probably clean things up a bit.
 
-```{r playerstats}
 
+```r
 ## get headers
 headers <- unlist(unlist(df$resultSets$headers[[1]]))
 
@@ -170,7 +185,23 @@ names(rowsets_tbl)[1:28] = c(headers)
 
 ## look at what we've got
 head(rowsets_tbl)
+```
 
+```
+## # A tibble: 6 × 28
+##      GAME_ID    TEAM_ID TEAM_ABBREVIATION TEAM_CITY PLAYER_ID
+##        <chr>      <chr>             <chr>     <chr>     <chr>
+## 1 0041500407 1610612739               CLE Cleveland      2544
+## 2 0041500407 1610612739               CLE Cleveland    201567
+## 3 0041500407 1610612739               CLE Cleveland    202684
+## 4 0041500407 1610612739               CLE Cleveland      2747
+## 5 0041500407 1610612739               CLE Cleveland    202681
+## 6 0041500407 1610612739               CLE Cleveland      2210
+## # ... with 23 more variables: PLAYER_NAME <chr>, START_POSITION <chr>,
+## #   COMMENT <chr>, MIN <chr>, FGM <int>, FGA <int>, FG_PCT <dbl>,
+## #   FG3M <int>, FG3A <int>, FG3_PCT <dbl>, FTM <int>, FTA <int>,
+## #   FT_PCT <dbl>, OREB <int>, DREB <int>, REB <int>, AST <int>, STL <int>,
+## #   BLK <int>, TO <int>, PF <int>, PTS <int>, PLUS_MINUS <int>
 ```
 
 
@@ -182,17 +213,18 @@ There are actually more than six records-- the dimensions listed refer to what's
 
 The following code chunks aren't being evaluated. But it's always good to know how to get your data in and out of R, and/or into a format you can use with the platform of your choice. 
 
-```{r write file, eval=FALSE}
+
+```r
 ## save your data as a csv file
 write.csv(rowsets_tbl, file = "~/data/rowsets_tbl.csv", row.names = FALSE)
 ```
 
 
-```{r read in file, eval=FALSE}
+
+```r
 ## read a csv file in using readr
 library(readr)
 rowsets_tbl <- read_csv("~/data/rowsets_tbl.csv", col_types = cols(MIN = col_character()))
-
 ```
 
 
@@ -201,8 +233,38 @@ rowsets_tbl <- read_csv("~/data/rowsets_tbl.csv", col_types = cols(MIN = col_cha
 
 **sessionInfo**
 
-```{r sessionInfo}
+
+```r
 sessionInfo()
+```
+
+```
+## R version 3.3.2 (2016-10-31)
+## Platform: x86_64-apple-darwin13.4.0 (64-bit)
+## Running under: OS X El Capitan 10.11.6
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+##  [1] dplyr_0.5.0.9000   purrr_0.2.2.9000   readr_1.0.0.9000  
+##  [4] tidyr_0.6.0        tibble_1.2         ggplot2_2.1.0.9001
+##  [7] tidyverse_1.0.0    jsonlite_1.1       RCurl_1.95-4.8    
+## [10] bitops_1.0-6      
+## 
+## loaded via a namespace (and not attached):
+##  [1] Rcpp_0.12.7         knitr_1.15          magrittr_1.5       
+##  [4] hms_0.2             munsell_0.4.3       colorspace_1.2-7   
+##  [7] R6_2.2.0            stringr_1.1.0       plyr_1.8.4         
+## [10] tools_3.3.2         grid_3.3.2          gtable_0.2.0       
+## [13] DBI_0.5-1           htmltools_0.3.5     assertthat_0.1     
+## [16] yaml_2.1.14         lazyeval_0.2.0.9000 rprojroot_1.1      
+## [19] digest_0.6.10       curl_2.2            evaluate_0.10      
+## [22] rmarkdown_1.1.9016  stringi_1.1.2       scales_0.4.0.9003  
+## [25] backports_1.0.4
 ```
 
 ===  
