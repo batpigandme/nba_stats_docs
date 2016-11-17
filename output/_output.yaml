@@ -1,0 +1,5 @@
+html_document:
+  theme: yeti
+  highlight: tango
+  fig_caption: false
+  keep_md: true
