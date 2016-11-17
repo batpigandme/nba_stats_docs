@@ -156,7 +156,9 @@ glimpse(pbp)
 ## $ PLAYER3_TEAM_ABBREVIATION <chr> NA, "CLE", NA, NA, NA, NA, NA, "CLE"...
 ```
 
-As is to be expected, the play-by-play data is a sequence of events that occur, the order of which is recorded in the **`EVENTNUM`** variable. The players involved are identified by name and ID number, and, depending on team, the event is described as a string (AKA words) in the **`HOMEDESCRIPTION`**, **`NEUTRALDESCRIPTION`**, or **`VISITORDESCRIPTION`** columns. 
+As is to be expected, the play-by-play data is a sequence of events that occur, the order of which is recorded in the **`EVENTNUM`** variable. 
+
+The players involved are identified by name and ID number, and, depending on team, the event is described as a string (AKA words) in the **`HOMEDESCRIPTION`**, **`NEUTRALDESCRIPTION`**, or **`VISITORDESCRIPTION`** columns.[^4]
 
 The third and fourth columns give us **`EVENTMSGTYPE`**, and **`EVENTMSGACTIONTYPE`**, which correspond to the event type, and what happened. For example, let's take a look at the 212th play logged.  
 
@@ -186,11 +188,12 @@ select(event_212, 8)
 ##                                                      <chr>
 ## 1 Green 26' 3PT Pullup Jump Shot (19 PTS) (Iguodala 3 AST)
 ```
+
 This was a pull-up jumper, made by Draymond Green. The `EVENTMSGTYPE`, 1, indicates a "make"; and the `EVENTMSGACTIONTYPE`, 79, corresponds to _"Pullup Jump Shot"_ in the description.  
 
 Not every message type has an action type, which makes sense, since you won't have a driving-hook substitution. Also, the meaning of the action type depends on the message type. For the EVENTMSGACTIONTYPE 1 indicates a jump shot for shooting EVENTMSGTYPEs (i.e. makes and misses), but, for EVENTMSGTYPE 9, a timeout, an EVENTMSGACTIONTYPE of 1 means it was a full timeout. For practical purposes, this means that if you are looking for a certain action type, you should always specify both the message _and_ action type.  
 
-I have yet to come across a formal _“data dictionary”_, with respect to these. However, Rajiv Shah's [documentation](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html), with a few additions I've found will suffice for our purposes. [If you have any to add, or any corrections, please message me, or submit it as an issue for this page on GitHub. ]
+I have yet to come across a formal _“data dictionary”_, with respect to these. However, Rajiv Shah's [documentation](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html), with a few additions I've found will suffice for our purposes. _[If you have any to add, or any corrections, please message me, or submit it as an issue for this page on GitHub. ]_
 
 #### **EVENTMSGTYPE**  
 **1** - Make; **2** - Miss; **3** - Free Throw; **4** - Rebound; **5** - Out-of-Bounds / Turnover / Steal; **6** - Personal Foul; **7** - Violation; **8** - Substitution; **9** - Timeout; **10** - Jumpball; **12** - Start Q1(?); **13** - Start Q2(?)
@@ -198,11 +201,24 @@ I have yet to come across a formal _“data dictionary”_, with respect to thes
 #### **EVENTMSGACTIONTYPE**   
 **1** - Jumpshot/Full Timeout; **2** - Lost Ball Turnover; **3** - ?; **4** - Traveling Turnover / Offensive Foul; **5** - Kicked Ball/Layup(?); **7** - Dunk; **10** - Free throw 1-1; **11** - Free Throw 1 of 2; **12** - Free Throw 2 of 2; **13** Free Throw 1 of 3; **14** Free Throw 2 of 3; **15** Free Throw 3 of 3; **30** - Out of bounds; **40** - Layup; **41** - Running Layup; **42** - Driving Layup; **47** - Turnaround Jump Shot; **50** - Running Dunk; **52** - Alley Oop Dunk; **55** - Hook Shot; **57** - Driving Hook Shot; **58** - Turnaround Hook Shot; **66** - Jump Bank Shot; **71** - Finger Roll Layup; **72** - Putback Layup; **79** - Pullup Jump Shot; **86** Turnaround Fadeaway Shot; **108** - Cutting Dunk Shot
 
+
+Another way to explore `EVENTMSGTYPE` and `EVENTMSGACTIONTYPE` would be by looking at the different combinations of the two variables with their descriptors.  
+
+```r
+## get unique sets of EVENTMSG and ACTION TYPEs
+eventmsg_combos <- pbp %>%
+  select(one_of(c("EVENTMSGTYPE", "EVENTMSGACTIONTYPE"))) %>%
+  distinct()
+```
+From looking at the number of unique combinations involving EVENTMSGACTIONTYPEs with a value of 0 or 1, it's clear that our makeshift data dictionary is incomplete. However, for now we'll leave those to be examined at a later date.  
+
 ### Dealing with Time
 
-Dealing with dates and time can be a tricky business.[^3] The [**`lubridate`**](https://github.com/hadley/lubridate) library makes things a little easier, and I recommend checking out the package vignette if you want to learn more. 
+Date and time data can be a tricky business.[^3] The [**`lubridate`**](https://github.com/hadley/lubridate) library makes things a little easier, and I recommend checking out the package vignette if you want to learn more. 
 
-In the play-by-play data we've loaded, there are two variables that contain `TIME`, one of which is a 12-minute countdown clock for each period (`PCTIMESTRING`). Since we want to look at this information relative to box score data, we'll need time in the form of tenths of seconds elapsed since the start of the game.
+In the play-by-play data we've loaded, there are two variables that contain `TIME`, one of which is a 12-minute countdown clock for each period (`PCTIMESTRING`). Since we want to look at this information relative to box score data, we'll need time in the form of tenths of seconds elapsed since the start of the game (the formatting for the `STARTRANGE` and `ENDRANGE` box score parameters).
+
+![Start/EndRange params](nba_stats_scraping_files/images/boxscorev2_StartEndRange.png) 
 
 Below, I've done this in two ways: step-by-step (wherein each step becomes a new variable), and as a single operation. 
 
@@ -230,9 +246,56 @@ library(lubridate)
 pbp$range_clock2 <- (abs(((period_to_seconds(ms(pbp$PCTIMESTRING))) - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)) * 10
 ```
 
+Knowing the time in "box score" format, will allow us to figure out who is on the floor at any given moment during the game, which is critical information for deriving an array of "advanced metrics."
+
+### Substitutions and Lineups  
+
+Rather than work with the entire play-by-play data frame, let's first pull out the records of interest. Since substitutions have an EVENTMSGTYPE of 8, we'll want to pull those records.
+
+```r
+## filter pbp by EVENTMSGTYPE 8
+pbp_subs <- pbp %>%
+  filter(EVENTMSGTYPE == "8")
+```
+
+By looking at the descriptions, you can see that for a given substitution, the player _leaving_ the court is Player 1 (`PLAYER1_ID`), and the player coming in is Player 2 (`PLAYER2_ID`). 
+
+Since manually editing the box score endpoint URL would be time consuming, and annoying, let's write a function to make things a bit easier. In keeping with the convention of the functions we've already loaded, it's a good idea to give it a name that begins with `get_`. We'll also want to set the `RangeType` to 2, since we're using the `StartRange` and `EndRange` parameters. For troubleshooting purposes, it's also a good idea to give the results of the steps within your function different names.
+
+
+```r
+## define function to get boxscoretraditionalv2
+get_boxtrad <- function(gameid, startrange, endrange){
+  #Grabs the box score data from NBA site
+  URL1 <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=10&EndRange=",endrange,"&GameID=",gameid,"&RangeType=2&StartPeriod=1&StartRange=",startrange,"", sep = "")
+  df<-fromJSON(URL1)
+  test <- unlist(df$resultSets$rowSet[[1]])
+  test1 <- as.data.frame(test)
+  test1[, c(10,11,13,14,16,17,19:28)] <- sapply(test1[, c(10,11,13,14,16,17,19:28)], as.integer)
+  test1[, c(12,15,18)] <- sapply(test1[, c(12,15,18)], as.numeric)
+  test2 <- tbl_df(test1)
+  headers <- unlist(unlist(df$resultSets$headers[[1]]))
+  names(test2)[1:28] = c(headers)
+  return(test2)
+}
+```
+
+In addition to `gameid`, this function also requires us to set `startrange` and `endrange` parameters in order for it to run. 
+
+```r
+## set arguments
+gameid <- "0041500407"
+startrange <- "0"
+endrange <- "9999"
+
+## get_boxtrad
+boxscore_3020 <- get_boxtrad(gameid, startrange, endrange)
+```
+
 
 ===  
 **References**  
 [^1]: For actual best practices for writing functions in R, I recommend checking out the [Functions](http://adv-r.had.co.nz/Functions.html) section of [Hadley Wickham](http://hadley.nz/)'s [_Advanced R_](http://adv-r.had.co.nz/), which is free, and online.  
 [^2]: More detail on all of these functions, including `get_pbp`, can be found in Rajiv Shah's post: [“Merging NBA Play by Play data with SportVU data”](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html).  
-[^3]: I recommend the [Time Data Types](http://www.cyclismo.org/tutorial/R/time.html) section of Kelly Black's intro-level [R Tutorial](http://www.cyclismo.org/tutorial/R/index.html) for a concise overview of working with dates and time using base R.
+[^3]: I recommend the [Time Data Types](http://www.cyclismo.org/tutorial/R/time.html) section of Kelly Black's intro-level [R Tutorial](http://www.cyclismo.org/tutorial/R/index.html) for a concise overview of working with dates and time using base R.  
+[^4]: Again, check out the [nba_py](https://github.com/seemethere/nba_py) stats.nba.com [Endpoint Documentation](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation) for more details regarding parameters.  
