@@ -1,4 +1,5 @@
 html_document:
+  md_extensions: +simple_tables
   theme: yeti
   highlight: tango
   fig_caption: false

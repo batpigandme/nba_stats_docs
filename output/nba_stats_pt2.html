@@ -388,11 +388,7 @@ boxscore_3020 &lt;-<span class="st"> </span><span class="kw">get_boxtrad</span>(
 ## $ PLUS_MINUS        &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</code></pre>
 <p>Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 “events” of the game, as indicated by the <code>EVENTNUM</code> in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to returne <em>only</em> the <code>PLAYER_ID</code> and/or <code>PLAYER_NAME</code> data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court.</p>
 <p>If we look at the boxscore for the interval between the first and second substitutions, you can see that the player who entered the game for the first substitution (Andre Iguodala) is listed, while the player who left (Festus Ezeli) is not.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## create variable for each row with the range_clock2 value of the previous substitution
-pbp_subs_w_lag &lt;-<span class="st"> </span>pbp_subs %&gt;%
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">prev =</span> <span class="kw">lag</span>(range_clock2))
-
-## or set manually ---------------------- TO CHANGE THIS WHEN BACK
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## or set manually ---------------------- TO CHANGE THIS WHEN BACK
 startrange &lt;-<span class="st"> &quot;3021&quot;</span>
 endrange &lt;-<span class="st"> &quot;3860&quot;</span>
 
@@ -403,6 +399,87 @@ boxscore_3860$PLAYER_NAME</code></pre></div>
 ##  [4] &quot;JR Smith&quot;         &quot;Kyrie Irving&quot;     &quot;Harrison Barnes&quot; 
 ##  [7] &quot;Draymond Green&quot;   &quot;Klay Thompson&quot;    &quot;Stephen Curry&quot;   
 ## [10] &quot;Andre Iguodala&quot;</code></pre>
+<p>Note that, in practice, it’s best to take advantage of the fact that each player has a <strong><code>PLAYER_ID</code></strong> when working with this kind of data. That way, you can avoid unnecessary confusion around strings (e.g. whether or not there are periods between the “J” and the “R” in JR Smith).</p>
+<div id="lineups-by-quarter-start-and-play-log" class="section level4">
+<h4>Lineups by quarter-start and play log</h4>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Quarter</th>
+<th align="left">StartRange</th>
+<th align="left">EndRange</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">1st</td>
+<td align="left">0</td>
+<td align="left">7200</td>
+</tr>
+<tr class="even">
+<td align="center">2nd</td>
+<td align="left">7201</td>
+<td align="left">14400</td>
+</tr>
+<tr class="odd">
+<td align="center">3rd</td>
+<td align="left">14401</td>
+<td align="left">21600</td>
+</tr>
+<tr class="even">
+<td align="center">4th</td>
+<td align="left">21601</td>
+<td align="left">28800</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="lineups-by-substitution-clock" class="section level4">
+<h4>Lineups by substitution clock</h4>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## create variable for each row with the range_clock2 value of the previous substitution
+pbp_subs_w_lag &lt;-<span class="st"> </span>pbp_subs %&gt;%
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">prev =</span> (<span class="kw">lag</span>(range_clock2) +<span class="st"> </span><span class="dv">1</span>)) <span class="co"># 1 sec beyond prev sub</span>
+## set NA to 0 for start
+pbp_subs_w_lag$prev[<span class="kw">which</span>(<span class="kw">is.na</span>(pbp_subs_w_lag$prev))] &lt;-<span class="st"> </span><span class="dv">0</span>
+
+## rename to pbp_subs
+pbp_subs &lt;-<span class="st"> </span>pbp_subs_w_lag</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## align parameters we want for boxscore URL with variables in play-by-play data
+
+<span class="co"># GameID &lt;- pbp_subs$GAME_ID</span>
+<span class="co"># EndPeriod &lt;- pbp_subs$PERIOD</span>
+<span class="co"># StartPeriod &lt;- pbp_subs$PERIOD</span>
+<span class="co"># EndRange &lt;- pbp_subs$range_clock2</span>
+<span class="co"># StartRange &lt;- pbp_subs$prev</span>
+
+pbp_subs$subURL &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="st">&quot;http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=&quot;</span>,pbp_subs$PERIOD,<span class="st">&quot;&amp;EndRange=&quot;</span>,pbp_subs$range_clock2,<span class="st">&quot;&amp;GameID=&quot;</span>,gameid,<span class="st">&quot;&amp;RangeType=2&amp;StartPeriod=&quot;</span>,pbp_subs$PERIOD,<span class="st">&quot;&amp;StartRange=&quot;</span>,pbp_subs$prev,<span class="st">&quot;&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)</code></pre></div>
+</div>
+</div>
+</div>
+<div id="stop-here-and-fix-below" class="section level2">
+<h2>***** STOP HERE AND FIX BELOW *****</h2>
+<p>Now we want to do something that uses <em>more</em> arguments than were defined/required for our initial <code>get_boxtrad</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## function to return the players on the court during time duration
+
+
+## --------------------- MESSED UP RETURN HERE ---------------------------- ##
+
+
+
+
+players_on &lt;-<span class="st"> </span>function(URL){
+  <span class="co">#Grabs the box score data from NBA site</span>
+  URL1 &lt;-<span class="st"> </span>pbp_subs$subURL
+  df&lt;-<span class="kw">fromJSON</span>(URL1)
+  test &lt;-<span class="st"> </span><span class="kw">unlist</span>(df$resultSets$rowSet[[<span class="dv">1</span>]])
+  test1 &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(test)
+  test1[, <span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">13</span>,<span class="dv">14</span>,<span class="dv">16</span>,<span class="dv">17</span>,<span class="dv">19</span>:<span class="dv">28</span>)] &lt;-<span class="st"> </span><span class="kw">sapply</span>(test1[, <span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">11</span>,<span class="dv">13</span>,<span class="dv">14</span>,<span class="dv">16</span>,<span class="dv">17</span>,<span class="dv">19</span>:<span class="dv">28</span>)], as.integer)
+  test1[, <span class="kw">c</span>(<span class="dv">12</span>,<span class="dv">15</span>,<span class="dv">18</span>)] &lt;-<span class="st"> </span><span class="kw">sapply</span>(test1[, <span class="kw">c</span>(<span class="dv">12</span>,<span class="dv">15</span>,<span class="dv">18</span>)], as.numeric)
+  test2 &lt;-<span class="st"> </span><span class="kw">tbl_df</span>(test1)
+  headers &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">unlist</span>(df$resultSets$headers[[<span class="dv">1</span>]]))
+  <span class="kw">names</span>(test2)[<span class="dv">1</span>:<span class="dv">28</span>] =<span class="st"> </span><span class="kw">c</span>(headers)
+  <span class="kw">return</span>(test2$PLAYER_NAME)
+}</code></pre></div>
 <p>However, if we were to get the boxscore starting at the beginning of the game, <em>through</em> the second substitution, we would have more than 10 players returned.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">startrange &lt;-<span class="st"> &quot;0&quot;</span>
 
@@ -448,7 +525,6 @@ boxspan$PLAYER_NAME</code></pre></div>
 [^2]: More detail on all of these functions, including <code>get_pbp</code>, can be found in Rajiv Shah’s post: <a href="http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html">“Merging NBA Play by Play data with SportVU data”</a>.<br />
 [^3]: I recommend the <a href="http://www.cyclismo.org/tutorial/R/time.html">Time Data Types</a> section of Kelly Black’s intro-level <a href="http://www.cyclismo.org/tutorial/R/index.html">R Tutorial</a> for a concise overview of working with dates and time using base R.<br />
 [^4]: Again, check out the <a href="https://github.com/seemethere/nba_py">nba_py</a> stats.nba.com <a href="https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation">Endpoint Documentation</a> for more details regarding parameters.</p>
-</div>
 </div>
 
 

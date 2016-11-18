@@ -327,16 +327,13 @@ glimpse(boxscore_3020)
 ## $ PTS               <int> 2, 2, 2, 0, 2, 3, 5, 0, 0, 0
 ## $ PLUS_MINUS        <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ```
+
 Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 "events" of the game, as indicated by the `EVENTNUM` in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to returne _only_ the `PLAYER_ID` and/or `PLAYER_NAME` data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court. 
 
+If we look at the boxscore for the interval between the first and second substitutions, you can see that the player who entered the game for the first substitution (Andre Iguodala) is listed, while the player who left (Festus Ezeli) is not. 
 
-If we look at the boxscore for the interval between the first and second substitutions, you can see that the player who entered the game for the first substitution (Andre Iguodala) is listed, while the player who left (Festus Ezeli) is not.  
 
 ```r
-## create variable for each row with the range_clock2 value of the previous substitution
-pbp_subs_w_lag <- pbp_subs %>%
-  mutate(prev = lag(range_clock2))
-
 ## or set manually ---------------------- TO CHANGE THIS WHEN BACK
 startrange <- "3021"
 endrange <- "3860"
@@ -352,6 +349,87 @@ boxscore_3860$PLAYER_NAME
 ##  [7] "Draymond Green"   "Klay Thompson"    "Stephen Curry"   
 ## [10] "Andre Iguodala"
 ```
+
+
+Note that, in practice, it's best to take advantage of the fact that each player has a **`PLAYER_ID`** when working with this kind of data. That way, you can avoid unnecessary confusion around strings (e.g. whether or not there are periods between the "J" and the "R" in JR Smith).
+
+
+#### Lineups by quarter-start and play log
+
+ Quarter   StartRange    EndRange
+---------  ------------- -------------
+   1st     0             7200
+   2nd     7201          14400
+   3rd     14401         21600
+   4th     21601         28800
+---------  ------------  -------------  
+      
+
+
+
+
+
+#### Lineups by substitution clock
+
+
+```r
+## create variable for each row with the range_clock2 value of the previous substitution
+pbp_subs_w_lag <- pbp_subs %>%
+  mutate(prev = (lag(range_clock2) + 1)) # 1 sec beyond prev sub
+## set NA to 0 for start
+pbp_subs_w_lag$prev[which(is.na(pbp_subs_w_lag$prev))] <- 0
+
+## rename to pbp_subs
+pbp_subs <- pbp_subs_w_lag
+```
+
+
+
+```r
+## align parameters we want for boxscore URL with variables in play-by-play data
+
+# GameID <- pbp_subs$GAME_ID
+# EndPeriod <- pbp_subs$PERIOD
+# StartPeriod <- pbp_subs$PERIOD
+# EndRange <- pbp_subs$range_clock2
+# StartRange <- pbp_subs$prev
+
+pbp_subs$subURL <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=",pbp_subs$PERIOD,"&EndRange=",pbp_subs$range_clock2,"&GameID=",gameid,"&RangeType=2&StartPeriod=",pbp_subs$PERIOD,"&StartRange=",pbp_subs$prev,"", sep = "")
+```
+
+## ***** STOP HERE AND FIX BELOW *****
+
+
+Now we want to do something that uses _more_ arguments than were defined/required for our initial `get_boxtrad` function. 
+
+
+```r
+## function to return the players on the court during time duration
+
+
+## --------------------- MESSED UP RETURN HERE ---------------------------- ##
+
+
+
+
+players_on <- function(URL){
+  #Grabs the box score data from NBA site
+  URL1 <- pbp_subs$subURL
+  df<-fromJSON(URL1)
+  test <- unlist(df$resultSets$rowSet[[1]])
+  test1 <- as.data.frame(test)
+  test1[, c(10,11,13,14,16,17,19:28)] <- sapply(test1[, c(10,11,13,14,16,17,19:28)], as.integer)
+  test1[, c(12,15,18)] <- sapply(test1[, c(12,15,18)], as.numeric)
+  test2 <- tbl_df(test1)
+  headers <- unlist(unlist(df$resultSets$headers[[1]]))
+  names(test2)[1:28] = c(headers)
+  return(test2$PLAYER_NAME)
+}
+```
+
+
+
+
 However, if we were to get the boxscore starting at the beginning of the game, _through_ the second substitution, we would have more than 10 players returned.
 
 ```r
