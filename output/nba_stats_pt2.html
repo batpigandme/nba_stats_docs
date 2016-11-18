@@ -388,7 +388,12 @@ boxscore_3020 &lt;-<span class="st"> </span><span class="kw">get_boxtrad</span>(
 ## $ PLUS_MINUS        &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</code></pre>
 <p>Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 “events” of the game, as indicated by the <code>EVENTNUM</code> in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to returne <em>only</em> the <code>PLAYER_ID</code> and/or <code>PLAYER_NAME</code> data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court.</p>
 <p>If we look at the boxscore for the interval between the first and second substitutions, you can see that the player who entered the game for the first substitution (Andre Iguodala) is listed, while the player who left (Festus Ezeli) is not.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">startrange &lt;-<span class="st"> &quot;3021&quot;</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## create variable for each row with the range_clock2 value of the previous substitution
+pbp_subs_w_lag &lt;-<span class="st"> </span>pbp_subs %&gt;%
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">prev =</span> <span class="kw">lag</span>(range_clock2))
+
+## or set manually ---------------------- TO CHANGE THIS WHEN BACK
+startrange &lt;-<span class="st"> &quot;3021&quot;</span>
 endrange &lt;-<span class="st"> &quot;3860&quot;</span>
 
 boxscore_3860 &lt;-<span class="st"> </span><span class="kw">get_boxtrad</span>(gameid, startrange, endrange)

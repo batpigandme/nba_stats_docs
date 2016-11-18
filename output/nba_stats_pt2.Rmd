@@ -243,6 +243,12 @@ Now we have the starting lineups for each team. These are the players who were o
 
 If we look at the boxscore for the interval between the first and second substitutions, you can see that the player who entered the game for the first substitution (Andre Iguodala) is listed, while the player who left (Festus Ezeli) is not.  
 ```{r lineup sub 2}
+
+## create variable for each row with the range_clock2 value of the previous substitution
+pbp_subs_w_lag <- pbp_subs %>%
+  mutate(prev = lag(range_clock2))
+
+## or set manually ---------------------- TO CHANGE THIS WHEN BACK
 startrange <- "3021"
 endrange <- "3860"
 
