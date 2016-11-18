@@ -242,6 +242,11 @@ Now we have the starting lineups for each team. These are the players who were o
 
 The same concept holds for any of the [stats.nba.com endpoints](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation), though, of course, the specifics (such as specifying data types, etc.) will vary. 
 
+===
+```{r}
+sessionInfo()
+```
+
 ===  
 **References**  
 [^1]: For actual best practices for writing functions in R, I recommend checking out the [Functions](http://adv-r.had.co.nz/Functions.html) section of [Hadley Wickham](http://hadley.nz/)'s [_Advanced R_](http://adv-r.had.co.nz/), which is free, and online.  

@@ -331,6 +331,41 @@ Now we have the starting lineups for each team. These are the players who were o
 
 The same concept holds for any of the [stats.nba.com endpoints](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation), though, of course, the specifics (such as specifying data types, etc.) will vary. 
 
+===
+
+```r
+sessionInfo()
+```
+
+```
+## R version 3.3.2 (2016-10-31)
+## Platform: x86_64-apple-darwin13.4.0 (64-bit)
+## Running under: OS X El Capitan 10.11.6
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+##  [1] lubridate_1.6.0    sp_1.2-3           dplyr_0.5.0.9000  
+##  [4] purrr_0.2.2.9000   readr_1.0.0.9000   tidyr_0.6.0       
+##  [7] tibble_1.2         ggplot2_2.1.0.9001 tidyverse_1.0.0   
+## [10] jsonlite_1.1       RCurl_1.95-4.8     bitops_1.0-6      
+## 
+## loaded via a namespace (and not attached):
+##  [1] Rcpp_0.12.7         knitr_1.15          magrittr_1.5       
+##  [4] hms_0.2             munsell_0.4.3       lattice_0.20-34    
+##  [7] colorspace_1.2-7    R6_2.2.0            stringr_1.1.0      
+## [10] plyr_1.8.4          tools_3.3.2         grid_3.3.2         
+## [13] gtable_0.2.0        DBI_0.5-1           htmltools_0.3.5    
+## [16] assertthat_0.1      yaml_2.1.14         lazyeval_0.2.0.9000
+## [19] rprojroot_1.1       digest_0.6.10       curl_2.2           
+## [22] evaluate_0.10       rmarkdown_1.1.9016  stringi_1.1.2      
+## [25] scales_0.4.0.9003   backports_1.0.4
+```
+
 ===  
 **References**  
 [^1]: For actual best practices for writing functions in R, I recommend checking out the [Functions](http://adv-r.had.co.nz/Functions.html) section of [Hadley Wickham](http://hadley.nz/)'s [_Advanced R_](http://adv-r.had.co.nz/), which is free, and online.  
