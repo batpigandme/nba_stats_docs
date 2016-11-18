@@ -329,6 +329,42 @@ glimpse(boxscore_3020)
 ```
 Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 "events" of the game, as indicated by the `EVENTNUM` in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to returne _only_ the `PLAYER_ID` and/or `PLAYER_NAME` data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court. 
 
+
+If we look at the boxscore for the interval between the first and second substitutions, you can see that the player who entered the game for the first substitution (Andre Iguodala) is listed, while the player who left (Festus Ezeli) is not.  
+
+```r
+startrange <- "3021"
+endrange <- "3860"
+
+boxscore_3860 <- get_boxtrad(gameid, startrange, endrange)
+
+boxscore_3860$PLAYER_NAME
+```
+
+```
+##  [1] "LeBron James"     "Kevin Love"       "Tristan Thompson"
+##  [4] "JR Smith"         "Kyrie Irving"     "Harrison Barnes" 
+##  [7] "Draymond Green"   "Klay Thompson"    "Stephen Curry"   
+## [10] "Andre Iguodala"
+```
+However, if we were to get the boxscore starting at the beginning of the game, _through_ the second substitution, we would have more than 10 players returned.
+
+```r
+startrange <- "0"
+
+boxspan <- get_boxtrad(gameid, startrange, endrange)
+
+boxspan$PLAYER_NAME
+```
+
+```
+##  [1] "LeBron James"     "Kevin Love"       "Tristan Thompson"
+##  [4] "JR Smith"         "Kyrie Irving"     "Harrison Barnes" 
+##  [7] "Draymond Green"   "Festus Ezeli"     "Klay Thompson"   
+## [10] "Stephen Curry"    "Andre Iguodala"
+```
+
+
 The same concept holds for any of the [stats.nba.com endpoints](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation), though, of course, the specifics (such as specifying data types, etc.) will vary. 
 
 ===
