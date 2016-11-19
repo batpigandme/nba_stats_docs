@@ -142,7 +142,7 @@ Not every message type has an action type, which makes sense, since you won't ha
 I have yet to come across a formal _“data dictionary”_, with respect to these. However, Rajiv Shah's [documentation](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html), with a few additions I've found will suffice for our purposes. _[If you have any to add, or any corrections, please message me, or submit it as an issue for [this page](https://github.com/batpigandme/nba_stats_docs) on GitHub.]_
 
 #### **EVENTMSGTYPE**  
-**1** - Make; **2** - Miss; **3** - Free Throw; **4** - Rebound; **5** - Out-of-Bounds / Turnover / Steal; **6** - Personal Foul; **7** - Violation; **8** - Substitution; **9** - Timeout; **10** - Jumpball; **12** - Start Q1(?); **13** - Start Q2(?)
+**1** - Make; **2** - Miss; **3** - Free Throw; **4** - Rebound; **5** - Out-of-Bounds / Turnover / Steal; **6** - Personal Foul; **7** - Violation; **8** - Substitution; **9** - Timeout; **10** - Jumpball; **12** - Start of Period; **13** - End of Period
 
 #### **EVENTMSGACTIONTYPE**   
 **1** - Jumpshot/Full Timeout; **2** - Lost Ball Turnover; **3** - ?; **4** - Traveling Turnover / Offensive Foul; **5** - Kicked Ball/Layup(?); **7** - Dunk; **10** - Free throw 1-1; **11** - Free Throw 1 of 2; **12** - Free Throw 2 of 2; **13** Free Throw 1 of 3; **14** Free Throw 2 of 3; **15** Free Throw 3 of 3; **30** - Out of bounds; **40** - Layup; **41** - Running Layup; **42** - Driving Layup; **47** - Turnaround Jump Shot; **50** - Running Dunk; **52** - Alley Oop Dunk; **55** - Hook Shot; **57** - Driving Hook Shot; **58** - Turnaround Hook Shot; **66** - Jump Bank Shot; **71** - Finger Roll Layup; **72** - Putback Layup; **79** - Pullup Jump Shot; **86** Turnaround Fadeaway Shot; **108** - Cutting Dunk Shot
@@ -167,7 +167,7 @@ In the play-by-play data we've loaded, there are two variables that contain `TIM
 
 Below, I've done this in two ways: step-by-step (wherein each step becomes a new variable), and as a single operation. 
 
-```{r clock conversions, message=FALSE}
+```{r clock conversions, message=FALSE, eval=FALSE}
 ## load lubridate
 library(lubridate)
 
@@ -178,7 +178,7 @@ pbp$period_sec_elapsed <- abs((pbp$pcsecs - 720))
 ## convert to game seconds elapsed
 pbp$game_sec_elapsed <- abs((pbp$pcsecs - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)
 ## convert to tenths of seconds for Range params
-pbp$range_clock <- (pbp$game_sec_elapsed * 10)
+pbp$range_clock1 <- (pbp$game_sec_elapsed * 10)
 
 ```
 
@@ -187,7 +187,7 @@ pbp$range_clock <- (pbp$game_sec_elapsed * 10)
 library(lubridate)
 
 ## convert PCTIMESTRING for Range params
-pbp$range_clock2 <- (abs(((period_to_seconds(ms(pbp$PCTIMESTRING))) - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)) * 10
+pbp$range_clock <- (abs(((period_to_seconds(ms(pbp$PCTIMESTRING))) - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)) * 10
 
 ```
 
@@ -196,6 +196,7 @@ Knowing the time in "box score" format, will allow us to figure out who is on th
 ### Substitutions and Lineups  
 
 Rather than work with the entire play-by-play data frame, let's first pull out the records of interest. Since substitutions have an EVENTMSGTYPE of 8, we'll want to pull those records.
+
 ```{r substitutions}
 ## filter pbp by EVENTMSGTYPE 8
 pbp_subs <- pbp %>%
@@ -226,7 +227,8 @@ get_boxtrad <- function(gameid, startrange, endrange){
 
 ```
 
-In addition to `gameid`, this function also requires us to set `startrange` and `endrange` parameters in order for it to run. We'll set the start to 0 (the beginning of the game), and the end to the value of `range_clock2` at the time of the first substitution.   
+In addition to `gameid`, this function also requires us to set `startrange` and `endrange` parameters in order for it to run. We'll set the start to 0 (the beginning of the game), and the end to the value of `range_clock` at the time of the first substitution.   
+
 ```{r}
 ## set arguments
 gameid <- "0041500407"
@@ -237,7 +239,7 @@ endrange <- "3020"
 boxscore_3020 <- get_boxtrad(gameid, startrange, endrange)
 
 ## glimpse results
-glimpse(boxscore_3020)
+boxscore_3020$PLAYER_NAME
 ```
 
 Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 "events" of the game, as indicated by the `EVENTNUM` in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to returne _only_ the `PLAYER_ID` and/or `PLAYER_NAME` data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court. 
@@ -271,17 +273,19 @@ Note that, in practice, it's best to take advantage of the fact that each player
 
 ```{r lineup by quarter}
 
+## add this
+
 ```
 
 
 
 #### Lineups by substitution clock
 
-```{r lineup sub 2}
+```{r sub add lag 2}
 
-## create variable for each row with the range_clock2 value of the previous substitution
+## create variable for each row with the range_clock value of the previous substitution
 pbp_subs_w_lag <- pbp_subs %>%
-  mutate(prev = (lag(range_clock2) + 1)) # 1 sec beyond prev sub
+  mutate(prev = (lag(range_clock) + 1)) # 1 sec beyond prev sub
 ## set NA to 0 for start
 pbp_subs_w_lag$prev[which(is.na(pbp_subs_w_lag$prev))] <- 0
 
@@ -293,13 +297,13 @@ pbp_subs <- pbp_subs_w_lag
 ```{r construct URL}
 ## align parameters we want for boxscore URL with variables in play-by-play data
 
-# GameID <- pbp_subs$GAME_ID
-# EndPeriod <- pbp_subs$PERIOD
-# StartPeriod <- pbp_subs$PERIOD
-# EndRange <- pbp_subs$range_clock2
-# StartRange <- pbp_subs$prev
+gameid <- pbp_subs$GAME_ID
+endperiod <- pbp_subs$PERIOD
+startperiod <- pbp_subs$PERIOD
+endrange <- pbp_subs$range_clock
+startrange <- pbp_subs$prev
 
-pbp_subs$subURL <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=",pbp_subs$PERIOD,"&EndRange=",pbp_subs$range_clock2,"&GameID=",gameid,"&RangeType=2&StartPeriod=",pbp_subs$PERIOD,"&StartRange=",pbp_subs$prev,"", sep = "")
+pbp_subs$subURL <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=",pbp_subs$PERIOD,"&EndRange=",pbp_subs$range_clock,"&GameID=",gameid,"&RangeType=2&StartPeriod=",pbp_subs$PERIOD,"&StartRange=",pbp_subs$prev,"", sep = "")
 ```
 
 ## ***** STOP HERE AND FIX BELOW *****
@@ -307,10 +311,37 @@ pbp_subs$subURL <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPe
 
 Now we want to do something that uses _more_ arguments than were defined/required for our initial `get_boxtrad` function. 
 
-```{r define players_on}
+```{r define get_players}
 ## function to return the players on the court during time duration
+get_players <- function(gameid, endperiod, startperiod, endrange, startrange){
+  URL1 <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=",endperiod,"&EndRange=",endrange,"&GameID=",gameid,"&RangeType=2&StartPeriod=",startperiod,"&StartRange=",startrange,"", sep = "")
+  df <- fromJSON(URL1)
+  test <- unlist(df$resultSets$rowSet[[1]])
+  test1 <- as.data.frame(test)
+  player_ids <- as.character(test1$V5)
+}
+## align params by row
+
+gameid <- pbp_subs$GAME_ID
+endperiod <- pbp_subs$PERIOD
+startperiod <- pbp_subs$PERIOD
+endrange <- pbp_subs$range_clock
+startrange <- pbp_subs$prev
 
 
+## for each row extract
+
+
+
+
+## alternative for args
+
+
+args2 <- list(gameid = gameid, endperiod = endperiod, startperiod = startperiod, endrange = endrange, startrange = startrange)
+
+```
+
+```{r revise}
 ## --------------------- MESSED UP RETURN HERE ---------------------------- ##
 
 
@@ -337,7 +368,7 @@ players_on <- function(URL){
 
 
 However, if we were to get the boxscore starting at the beginning of the game, _through_ the second substitution, we would have more than 10 players returned.
-```{r boxspan}
+```{r boxspan, eval=FALSE}
 startrange <- "0"
 
 boxspan <- get_boxtrad(gameid, startrange, endrange)
@@ -349,7 +380,7 @@ boxspan$PLAYER_NAME
 The same concept holds for any of the [stats.nba.com endpoints](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation), though, of course, the specifics (such as specifying data types, etc.) will vary. 
 
 ===
-```{r}
+```{r sessionInfo}
 sessionInfo()
 ```
 

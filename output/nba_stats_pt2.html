@@ -286,7 +286,7 @@ event_212 &lt;-<span class="st"> </span><span class="kw">filter</span>(pbp, EVEN
 <p>I have yet to come across a formal <em>“data dictionary”</em>, with respect to these. However, Rajiv Shah’s <a href="http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html">documentation</a>, with a few additions I’ve found will suffice for our purposes. <em>[If you have any to add, or any corrections, please message me, or submit it as an issue for <a href="https://github.com/batpigandme/nba_stats_docs">this page</a> on GitHub.]</em></p>
 <div id="eventmsgtype" class="section level4">
 <h4><strong>EVENTMSGTYPE</strong></h4>
-<p><strong>1</strong> - Make; <strong>2</strong> - Miss; <strong>3</strong> - Free Throw; <strong>4</strong> - Rebound; <strong>5</strong> - Out-of-Bounds / Turnover / Steal; <strong>6</strong> - Personal Foul; <strong>7</strong> - Violation; <strong>8</strong> - Substitution; <strong>9</strong> - Timeout; <strong>10</strong> - Jumpball; <strong>12</strong> - Start Q1(?); <strong>13</strong> - Start Q2(?)</p>
+<p><strong>1</strong> - Make; <strong>2</strong> - Miss; <strong>3</strong> - Free Throw; <strong>4</strong> - Rebound; <strong>5</strong> - Out-of-Bounds / Turnover / Steal; <strong>6</strong> - Personal Foul; <strong>7</strong> - Violation; <strong>8</strong> - Substitution; <strong>9</strong> - Timeout; <strong>10</strong> - Jumpball; <strong>12</strong> - Start of Period; <strong>13</strong> - End of Period</p>
 </div>
 <div id="eventmsgactiontype" class="section level4">
 <h4><strong>EVENTMSGACTIONTYPE</strong></h4>
@@ -315,12 +315,12 @@ pbp$period_sec_elapsed &lt;-<span class="st"> </span><span class="kw">abs</span>
 ## convert to game seconds elapsed
 pbp$game_sec_elapsed &lt;-<span class="st"> </span><span class="kw">abs</span>((pbp$pcsecs -<span class="st"> </span><span class="dv">720</span>)) +<span class="st"> </span>(((<span class="kw">as.numeric</span>(pbp$PERIOD)) -<span class="st"> </span><span class="dv">1</span>) *<span class="st"> </span><span class="dv">720</span>)
 ## convert to tenths of seconds for Range params
-pbp$range_clock &lt;-<span class="st"> </span>(pbp$game_sec_elapsed *<span class="st"> </span><span class="dv">10</span>)</code></pre></div>
+pbp$range_clock1 &lt;-<span class="st"> </span>(pbp$game_sec_elapsed *<span class="st"> </span><span class="dv">10</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## load lubridate
 <span class="kw">library</span>(lubridate)
 
 ## convert PCTIMESTRING for Range params
-pbp$range_clock2 &lt;-<span class="st"> </span>(<span class="kw">abs</span>(((<span class="kw">period_to_seconds</span>(<span class="kw">ms</span>(pbp$PCTIMESTRING))) -<span class="st"> </span><span class="dv">720</span>)) +<span class="st"> </span>(((<span class="kw">as.numeric</span>(pbp$PERIOD)) -<span class="st"> </span><span class="dv">1</span>) *<span class="st"> </span><span class="dv">720</span>)) *<span class="st"> </span><span class="dv">10</span></code></pre></div>
+pbp$range_clock &lt;-<span class="st"> </span>(<span class="kw">abs</span>(((<span class="kw">period_to_seconds</span>(<span class="kw">ms</span>(pbp$PCTIMESTRING))) -<span class="st"> </span><span class="dv">720</span>)) +<span class="st"> </span>(((<span class="kw">as.numeric</span>(pbp$PERIOD)) -<span class="st"> </span><span class="dv">1</span>) *<span class="st"> </span><span class="dv">720</span>)) *<span class="st"> </span><span class="dv">10</span></code></pre></div>
 <p>Knowing the time in “box score” format, will allow us to figure out who is on the floor at any given moment during the game, which is critical information for deriving an array of “advanced metrics.”</p>
 </div>
 <div id="substitutions-and-lineups" class="section level3">
@@ -345,7 +345,7 @@ get_boxtrad &lt;-<span class="st"> </span>function(gameid, startrange, endrange)
   <span class="kw">names</span>(test2)[<span class="dv">1</span>:<span class="dv">28</span>] =<span class="st"> </span><span class="kw">c</span>(headers)
   <span class="kw">return</span>(test2)
 }</code></pre></div>
-<p>In addition to <code>gameid</code>, this function also requires us to set <code>startrange</code> and <code>endrange</code> parameters in order for it to run. We’ll set the start to 0 (the beginning of the game), and the end to the value of <code>range_clock2</code> at the time of the first substitution.</p>
+<p>In addition to <code>gameid</code>, this function also requires us to set <code>startrange</code> and <code>endrange</code> parameters in order for it to run. We’ll set the start to 0 (the beginning of the game), and the end to the value of <code>range_clock</code> at the time of the first substitution.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## set arguments
 gameid &lt;-<span class="st"> &quot;0041500407&quot;</span>
 startrange &lt;-<span class="st"> &quot;0&quot;</span>
@@ -355,37 +355,11 @@ endrange &lt;-<span class="st"> &quot;3020&quot;</span>
 boxscore_3020 &lt;-<span class="st"> </span><span class="kw">get_boxtrad</span>(gameid, startrange, endrange)
 
 ## glimpse results
-<span class="kw">glimpse</span>(boxscore_3020)</code></pre></div>
-<pre><code>## Observations: 10
-## Variables: 28
-## $ GAME_ID           &lt;chr&gt; &quot;0041500407&quot;, &quot;0041500407&quot;, &quot;0041500407&quot;, &quot;0...
-## $ TEAM_ID           &lt;chr&gt; &quot;1610612739&quot;, &quot;1610612739&quot;, &quot;1610612739&quot;, &quot;1...
-## $ TEAM_ABBREVIATION &lt;chr&gt; &quot;CLE&quot;, &quot;CLE&quot;, &quot;CLE&quot;, &quot;CLE&quot;, &quot;CLE&quot;, &quot;GSW&quot;, &quot;G...
-## $ TEAM_CITY         &lt;chr&gt; &quot;Cleveland&quot;, &quot;Cleveland&quot;, &quot;Cleveland&quot;, &quot;Clev...
-## $ PLAYER_ID         &lt;chr&gt; &quot;2544&quot;, &quot;201567&quot;, &quot;202684&quot;, &quot;2747&quot;, &quot;202681&quot;...
-## $ PLAYER_NAME       &lt;chr&gt; &quot;LeBron James&quot;, &quot;Kevin Love&quot;, &quot;Tristan Thomp...
-## $ START_POSITION    &lt;chr&gt; &quot;F&quot;, &quot;F&quot;, &quot;C&quot;, &quot;G&quot;, &quot;G&quot;, &quot;F&quot;, &quot;F&quot;, &quot;C&quot;, &quot;G&quot;,...
-## $ COMMENT           &lt;chr&gt; &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;
-## $ MIN               &lt;chr&gt; &quot;5:02&quot;, &quot;5:02&quot;, &quot;5:02&quot;, &quot;5:02&quot;, &quot;5:02&quot;, &quot;5:0...
-## $ FGM               &lt;int&gt; 1, 1, 1, 0, 1, 1, 2, 0, 0, 0
-## $ FGA               &lt;int&gt; 2, 4, 1, 2, 2, 2, 2, 3, 2, 1
-## $ FG_PCT            &lt;dbl&gt; 0.50, 0.25, 1.00, 0.00, 0.50, 0.50, 1.00, 0....
-## $ FG3M              &lt;int&gt; 0, 0, 0, 0, 0, 1, 1, 0, 0, 0
-## $ FG3A              &lt;int&gt; 0, 1, 0, 1, 0, 1, 1, 0, 2, 1
-## $ FG3_PCT           &lt;dbl&gt; 0, 0, 0, 0, 0, 1, 1, 0, 0, 0
-## $ FTM               &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-## $ FTA               &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-## $ FT_PCT            &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-## $ OREB              &lt;int&gt; 0, 2, 0, 0, 0, 0, 0, 0, 1, 0
-## $ DREB              &lt;int&gt; 3, 1, 2, 0, 0, 1, 0, 1, 0, 2
-## $ REB               &lt;int&gt; 3, 3, 2, 0, 0, 1, 0, 1, 1, 2
-## $ AST               &lt;int&gt; 0, 0, 0, 1, 1, 1, 1, 1, 0, 0
-## $ STL               &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-## $ BLK               &lt;int&gt; 0, 0, 2, 0, 0, 0, 0, 0, 0, 0
-## $ TO                &lt;int&gt; 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
-## $ PF                &lt;int&gt; 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
-## $ PTS               &lt;int&gt; 2, 2, 2, 0, 2, 3, 5, 0, 0, 0
-## $ PLUS_MINUS        &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0</code></pre>
+boxscore_3020$PLAYER_NAME</code></pre></div>
+<pre><code>##  [1] &quot;LeBron James&quot;     &quot;Kevin Love&quot;       &quot;Tristan Thompson&quot;
+##  [4] &quot;JR Smith&quot;         &quot;Kyrie Irving&quot;     &quot;Harrison Barnes&quot; 
+##  [7] &quot;Draymond Green&quot;   &quot;Festus Ezeli&quot;     &quot;Klay Thompson&quot;   
+## [10] &quot;Stephen Curry&quot;</code></pre>
 <p>Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 “events” of the game, as indicated by the <code>EVENTNUM</code> in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to returne <em>only</em> the <code>PLAYER_ID</code> and/or <code>PLAYER_NAME</code> data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court.</p>
 <p>If we look at the boxscore for the interval between the first and second substitutions, you can see that the player who entered the game for the first substitution (Andre Iguodala) is listed, while the player who left (Festus Ezeli) is not.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## or set manually ---------------------- TO CHANGE THIS WHEN BACK
@@ -433,12 +407,13 @@ boxscore_3860$PLAYER_NAME</code></pre></div>
 </tr>
 </tbody>
 </table>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## add this</code></pre></div>
 </div>
 <div id="lineups-by-substitution-clock" class="section level4">
 <h4>Lineups by substitution clock</h4>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## create variable for each row with the range_clock2 value of the previous substitution
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## create variable for each row with the range_clock value of the previous substitution
 pbp_subs_w_lag &lt;-<span class="st"> </span>pbp_subs %&gt;%
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">prev =</span> (<span class="kw">lag</span>(range_clock2) +<span class="st"> </span><span class="dv">1</span>)) <span class="co"># 1 sec beyond prev sub</span>
+<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">prev =</span> (<span class="kw">lag</span>(range_clock) +<span class="st"> </span><span class="dv">1</span>)) <span class="co"># 1 sec beyond prev sub</span>
 ## set NA to 0 for start
 pbp_subs_w_lag$prev[<span class="kw">which</span>(<span class="kw">is.na</span>(pbp_subs_w_lag$prev))] &lt;-<span class="st"> </span><span class="dv">0</span>
 
@@ -446,13 +421,13 @@ pbp_subs_w_lag$prev[<span class="kw">which</span>(<span class="kw">is.na</span>(
 pbp_subs &lt;-<span class="st"> </span>pbp_subs_w_lag</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## align parameters we want for boxscore URL with variables in play-by-play data
 
-<span class="co"># GameID &lt;- pbp_subs$GAME_ID</span>
-<span class="co"># EndPeriod &lt;- pbp_subs$PERIOD</span>
-<span class="co"># StartPeriod &lt;- pbp_subs$PERIOD</span>
-<span class="co"># EndRange &lt;- pbp_subs$range_clock2</span>
-<span class="co"># StartRange &lt;- pbp_subs$prev</span>
+gameid &lt;-<span class="st"> </span>pbp_subs$GAME_ID
+endperiod &lt;-<span class="st"> </span>pbp_subs$PERIOD
+startperiod &lt;-<span class="st"> </span>pbp_subs$PERIOD
+endrange &lt;-<span class="st"> </span>pbp_subs$range_clock
+startrange &lt;-<span class="st"> </span>pbp_subs$prev
 
-pbp_subs$subURL &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="st">&quot;http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=&quot;</span>,pbp_subs$PERIOD,<span class="st">&quot;&amp;EndRange=&quot;</span>,pbp_subs$range_clock2,<span class="st">&quot;&amp;GameID=&quot;</span>,gameid,<span class="st">&quot;&amp;RangeType=2&amp;StartPeriod=&quot;</span>,pbp_subs$PERIOD,<span class="st">&quot;&amp;StartRange=&quot;</span>,pbp_subs$prev,<span class="st">&quot;&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)</code></pre></div>
+pbp_subs$subURL &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="st">&quot;http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=&quot;</span>,pbp_subs$PERIOD,<span class="st">&quot;&amp;EndRange=&quot;</span>,pbp_subs$range_clock,<span class="st">&quot;&amp;GameID=&quot;</span>,gameid,<span class="st">&quot;&amp;RangeType=2&amp;StartPeriod=&quot;</span>,pbp_subs$PERIOD,<span class="st">&quot;&amp;StartRange=&quot;</span>,pbp_subs$prev,<span class="st">&quot;&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)</code></pre></div>
 </div>
 </div>
 </div>
@@ -460,9 +435,32 @@ pbp_subs$subURL &lt;-<span class="st"> </span><span class="kw">paste</span>(<spa
 <h2>***** STOP HERE AND FIX BELOW *****</h2>
 <p>Now we want to do something that uses <em>more</em> arguments than were defined/required for our initial <code>get_boxtrad</code> function.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## function to return the players on the court during time duration
+get_players &lt;-<span class="st"> </span>function(gameid, endperiod, startperiod, endrange, startrange){
+  URL1 &lt;-<span class="st"> </span><span class="kw">paste</span>(<span class="st">&quot;http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=&quot;</span>,endperiod,<span class="st">&quot;&amp;EndRange=&quot;</span>,endrange,<span class="st">&quot;&amp;GameID=&quot;</span>,gameid,<span class="st">&quot;&amp;RangeType=2&amp;StartPeriod=&quot;</span>,startperiod,<span class="st">&quot;&amp;StartRange=&quot;</span>,startrange,<span class="st">&quot;&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)
+  df &lt;-<span class="st"> </span><span class="kw">fromJSON</span>(URL1)
+  test &lt;-<span class="st"> </span><span class="kw">unlist</span>(df$resultSets$rowSet[[<span class="dv">1</span>]])
+  test1 &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(test)
+  player_ids &lt;-<span class="st"> </span><span class="kw">as.character</span>(test1$V5)
+}
+## align params by row
+
+gameid &lt;-<span class="st"> </span>pbp_subs$GAME_ID
+endperiod &lt;-<span class="st"> </span>pbp_subs$PERIOD
+startperiod &lt;-<span class="st"> </span>pbp_subs$PERIOD
+endrange &lt;-<span class="st"> </span>pbp_subs$range_clock
+startrange &lt;-<span class="st"> </span>pbp_subs$prev
 
 
-## --------------------- MESSED UP RETURN HERE ---------------------------- ##
+## for each row extract
+
+
+
+
+## alternative for args
+
+
+args2 &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">gameid =</span> gameid, <span class="dt">endperiod =</span> endperiod, <span class="dt">startperiod =</span> startperiod, <span class="dt">endrange =</span> endrange, <span class="dt">startrange =</span> startrange)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## --------------------- MESSED UP RETURN HERE ---------------------------- ##
 
 
 
@@ -486,10 +484,6 @@ players_on &lt;-<span class="st"> </span>function(URL){
 boxspan &lt;-<span class="st"> </span><span class="kw">get_boxtrad</span>(gameid, startrange, endrange)
 
 boxspan$PLAYER_NAME</code></pre></div>
-<pre><code>##  [1] &quot;LeBron James&quot;     &quot;Kevin Love&quot;       &quot;Tristan Thompson&quot;
-##  [4] &quot;JR Smith&quot;         &quot;Kyrie Irving&quot;     &quot;Harrison Barnes&quot; 
-##  [7] &quot;Draymond Green&quot;   &quot;Festus Ezeli&quot;     &quot;Klay Thompson&quot;   
-## [10] &quot;Stephen Curry&quot;    &quot;Andre Iguodala&quot;</code></pre>
 <p>The same concept holds for any of the <a href="https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation">stats.nba.com endpoints</a>, though, of course, the specifics (such as specifying data types, etc.) will vary.</p>
 <p>===</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sessionInfo</span>()</code></pre></div>
@@ -504,21 +498,20 @@ boxspan$PLAYER_NAME</code></pre></div>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] lubridate_1.6.0    sp_1.2-3           dplyr_0.5.0.9000  
-##  [4] purrr_0.2.2.9000   readr_1.0.0.9000   tidyr_0.6.0       
-##  [7] tibble_1.2         ggplot2_2.1.0.9001 tidyverse_1.0.0   
-## [10] jsonlite_1.1       RCurl_1.95-4.8     bitops_1.0-6      
+##  [1] lubridate_1.6.0  sp_1.2-3         dplyr_0.5.0.9000 purrr_0.2.2.9000
+##  [5] readr_1.0.0.9000 tidyr_0.6.0      tibble_1.2       ggplot2_2.2.0   
+##  [9] tidyverse_1.0.0  jsonlite_1.1     RCurl_1.95-4.8   bitops_1.0-6    
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.7         knitr_1.15          magrittr_1.5       
+##  [1] Rcpp_0.12.8         knitr_1.15.1        magrittr_1.5       
 ##  [4] hms_0.2             munsell_0.4.3       lattice_0.20-34    
-##  [7] colorspace_1.2-7    R6_2.2.0            stringr_1.1.0      
+##  [7] colorspace_1.3-1    R6_2.2.0            stringr_1.1.0      
 ## [10] plyr_1.8.4          tools_3.3.2         grid_3.3.2         
 ## [13] gtable_0.2.0        DBI_0.5-1           htmltools_0.3.5    
 ## [16] assertthat_0.1      yaml_2.1.14         lazyeval_0.2.0.9000
 ## [19] rprojroot_1.1       digest_0.6.10       curl_2.2           
-## [22] evaluate_0.10       rmarkdown_1.1.9016  stringi_1.1.2      
-## [25] scales_0.4.0.9003   backports_1.0.4</code></pre>
+## [22] evaluate_0.10       rmarkdown_1.1.9017  stringi_1.1.2      
+## [25] scales_0.4.1        backports_1.0.4</code></pre>
 <p>===<br />
 <strong>References</strong><br />
 [^1]: For actual best practices for writing functions in R, I recommend checking out the <a href="http://adv-r.had.co.nz/Functions.html">Functions</a> section of <a href="http://hadley.nz/">Hadley Wickham</a>’s <a href="http://adv-r.had.co.nz/"><em>Advanced R</em></a>, which is free, and online.<br />

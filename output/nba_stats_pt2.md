@@ -196,7 +196,7 @@ Not every message type has an action type, which makes sense, since you won't ha
 I have yet to come across a formal _“data dictionary”_, with respect to these. However, Rajiv Shah's [documentation](http://projects.rajivshah.com/sportvu/PBP_NBA_SportVu.html), with a few additions I've found will suffice for our purposes. _[If you have any to add, or any corrections, please message me, or submit it as an issue for [this page](https://github.com/batpigandme/nba_stats_docs) on GitHub.]_
 
 #### **EVENTMSGTYPE**  
-**1** - Make; **2** - Miss; **3** - Free Throw; **4** - Rebound; **5** - Out-of-Bounds / Turnover / Steal; **6** - Personal Foul; **7** - Violation; **8** - Substitution; **9** - Timeout; **10** - Jumpball; **12** - Start Q1(?); **13** - Start Q2(?)
+**1** - Make; **2** - Miss; **3** - Free Throw; **4** - Rebound; **5** - Out-of-Bounds / Turnover / Steal; **6** - Personal Foul; **7** - Violation; **8** - Substitution; **9** - Timeout; **10** - Jumpball; **12** - Start of Period; **13** - End of Period
 
 #### **EVENTMSGACTIONTYPE**   
 **1** - Jumpshot/Full Timeout; **2** - Lost Ball Turnover; **3** - ?; **4** - Traveling Turnover / Offensive Foul; **5** - Kicked Ball/Layup(?); **7** - Dunk; **10** - Free throw 1-1; **11** - Free Throw 1 of 2; **12** - Free Throw 2 of 2; **13** Free Throw 1 of 3; **14** Free Throw 2 of 3; **15** Free Throw 3 of 3; **30** - Out of bounds; **40** - Layup; **41** - Running Layup; **42** - Driving Layup; **47** - Turnaround Jump Shot; **50** - Running Dunk; **52** - Alley Oop Dunk; **55** - Hook Shot; **57** - Driving Hook Shot; **58** - Turnaround Hook Shot; **66** - Jump Bank Shot; **71** - Finger Roll Layup; **72** - Putback Layup; **79** - Pullup Jump Shot; **86** Turnaround Fadeaway Shot; **108** - Cutting Dunk Shot
@@ -234,7 +234,7 @@ pbp$period_sec_elapsed <- abs((pbp$pcsecs - 720))
 ## convert to game seconds elapsed
 pbp$game_sec_elapsed <- abs((pbp$pcsecs - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)
 ## convert to tenths of seconds for Range params
-pbp$range_clock <- (pbp$game_sec_elapsed * 10)
+pbp$range_clock1 <- (pbp$game_sec_elapsed * 10)
 ```
 
 
@@ -243,7 +243,7 @@ pbp$range_clock <- (pbp$game_sec_elapsed * 10)
 library(lubridate)
 
 ## convert PCTIMESTRING for Range params
-pbp$range_clock2 <- (abs(((period_to_seconds(ms(pbp$PCTIMESTRING))) - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)) * 10
+pbp$range_clock <- (abs(((period_to_seconds(ms(pbp$PCTIMESTRING))) - 720)) + (((as.numeric(pbp$PERIOD)) - 1) * 720)) * 10
 ```
 
 Knowing the time in "box score" format, will allow us to figure out who is on the floor at any given moment during the game, which is critical information for deriving an array of "advanced metrics."
@@ -251,6 +251,7 @@ Knowing the time in "box score" format, will allow us to figure out who is on th
 ### Substitutions and Lineups  
 
 Rather than work with the entire play-by-play data frame, let's first pull out the records of interest. Since substitutions have an EVENTMSGTYPE of 8, we'll want to pull those records.
+
 
 ```r
 ## filter pbp by EVENTMSGTYPE 8
@@ -280,7 +281,8 @@ get_boxtrad <- function(gameid, startrange, endrange){
 }
 ```
 
-In addition to `gameid`, this function also requires us to set `startrange` and `endrange` parameters in order for it to run. We'll set the start to 0 (the beginning of the game), and the end to the value of `range_clock2` at the time of the first substitution.   
+In addition to `gameid`, this function also requires us to set `startrange` and `endrange` parameters in order for it to run. We'll set the start to 0 (the beginning of the game), and the end to the value of `range_clock` at the time of the first substitution.   
+
 
 ```r
 ## set arguments
@@ -292,40 +294,14 @@ endrange <- "3020"
 boxscore_3020 <- get_boxtrad(gameid, startrange, endrange)
 
 ## glimpse results
-glimpse(boxscore_3020)
+boxscore_3020$PLAYER_NAME
 ```
 
 ```
-## Observations: 10
-## Variables: 28
-## $ GAME_ID           <chr> "0041500407", "0041500407", "0041500407", "0...
-## $ TEAM_ID           <chr> "1610612739", "1610612739", "1610612739", "1...
-## $ TEAM_ABBREVIATION <chr> "CLE", "CLE", "CLE", "CLE", "CLE", "GSW", "G...
-## $ TEAM_CITY         <chr> "Cleveland", "Cleveland", "Cleveland", "Clev...
-## $ PLAYER_ID         <chr> "2544", "201567", "202684", "2747", "202681"...
-## $ PLAYER_NAME       <chr> "LeBron James", "Kevin Love", "Tristan Thomp...
-## $ START_POSITION    <chr> "F", "F", "C", "G", "G", "F", "F", "C", "G",...
-## $ COMMENT           <chr> "", "", "", "", "", "", "", "", "", ""
-## $ MIN               <chr> "5:02", "5:02", "5:02", "5:02", "5:02", "5:0...
-## $ FGM               <int> 1, 1, 1, 0, 1, 1, 2, 0, 0, 0
-## $ FGA               <int> 2, 4, 1, 2, 2, 2, 2, 3, 2, 1
-## $ FG_PCT            <dbl> 0.50, 0.25, 1.00, 0.00, 0.50, 0.50, 1.00, 0....
-## $ FG3M              <int> 0, 0, 0, 0, 0, 1, 1, 0, 0, 0
-## $ FG3A              <int> 0, 1, 0, 1, 0, 1, 1, 0, 2, 1
-## $ FG3_PCT           <dbl> 0, 0, 0, 0, 0, 1, 1, 0, 0, 0
-## $ FTM               <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-## $ FTA               <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-## $ FT_PCT            <dbl> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-## $ OREB              <int> 0, 2, 0, 0, 0, 0, 0, 0, 1, 0
-## $ DREB              <int> 3, 1, 2, 0, 0, 1, 0, 1, 0, 2
-## $ REB               <int> 3, 3, 2, 0, 0, 1, 0, 1, 1, 2
-## $ AST               <int> 0, 0, 0, 1, 1, 1, 1, 1, 0, 0
-## $ STL               <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-## $ BLK               <int> 0, 0, 2, 0, 0, 0, 0, 0, 0, 0
-## $ TO                <int> 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
-## $ PF                <int> 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
-## $ PTS               <int> 2, 2, 2, 0, 2, 3, 5, 0, 0, 0
-## $ PLUS_MINUS        <int> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+##  [1] "LeBron James"     "Kevin Love"       "Tristan Thompson"
+##  [4] "JR Smith"         "Kyrie Irving"     "Harrison Barnes" 
+##  [7] "Draymond Green"   "Festus Ezeli"     "Klay Thompson"   
+## [10] "Stephen Curry"
 ```
 
 Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 "events" of the game, as indicated by the `EVENTNUM` in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to returne _only_ the `PLAYER_ID` and/or `PLAYER_NAME` data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court. 
@@ -366,6 +342,9 @@ Note that, in practice, it's best to take advantage of the fact that each player
       
 
 
+```r
+## add this
+```
 
 
 
@@ -373,9 +352,9 @@ Note that, in practice, it's best to take advantage of the fact that each player
 
 
 ```r
-## create variable for each row with the range_clock2 value of the previous substitution
+## create variable for each row with the range_clock value of the previous substitution
 pbp_subs_w_lag <- pbp_subs %>%
-  mutate(prev = (lag(range_clock2) + 1)) # 1 sec beyond prev sub
+  mutate(prev = (lag(range_clock) + 1)) # 1 sec beyond prev sub
 ## set NA to 0 for start
 pbp_subs_w_lag$prev[which(is.na(pbp_subs_w_lag$prev))] <- 0
 
@@ -388,13 +367,13 @@ pbp_subs <- pbp_subs_w_lag
 ```r
 ## align parameters we want for boxscore URL with variables in play-by-play data
 
-# GameID <- pbp_subs$GAME_ID
-# EndPeriod <- pbp_subs$PERIOD
-# StartPeriod <- pbp_subs$PERIOD
-# EndRange <- pbp_subs$range_clock2
-# StartRange <- pbp_subs$prev
+gameid <- pbp_subs$GAME_ID
+endperiod <- pbp_subs$PERIOD
+startperiod <- pbp_subs$PERIOD
+endrange <- pbp_subs$range_clock
+startrange <- pbp_subs$prev
 
-pbp_subs$subURL <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=",pbp_subs$PERIOD,"&EndRange=",pbp_subs$range_clock2,"&GameID=",gameid,"&RangeType=2&StartPeriod=",pbp_subs$PERIOD,"&StartRange=",pbp_subs$prev,"", sep = "")
+pbp_subs$subURL <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=",pbp_subs$PERIOD,"&EndRange=",pbp_subs$range_clock,"&GameID=",gameid,"&RangeType=2&StartPeriod=",pbp_subs$PERIOD,"&StartRange=",pbp_subs$prev,"", sep = "")
 ```
 
 ## ***** STOP HERE AND FIX BELOW *****
@@ -405,8 +384,35 @@ Now we want to do something that uses _more_ arguments than were defined/require
 
 ```r
 ## function to return the players on the court during time duration
+get_players <- function(gameid, endperiod, startperiod, endrange, startrange){
+  URL1 <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=",endperiod,"&EndRange=",endrange,"&GameID=",gameid,"&RangeType=2&StartPeriod=",startperiod,"&StartRange=",startrange,"", sep = "")
+  df <- fromJSON(URL1)
+  test <- unlist(df$resultSets$rowSet[[1]])
+  test1 <- as.data.frame(test)
+  player_ids <- as.character(test1$V5)
+}
+## align params by row
+
+gameid <- pbp_subs$GAME_ID
+endperiod <- pbp_subs$PERIOD
+startperiod <- pbp_subs$PERIOD
+endrange <- pbp_subs$range_clock
+startrange <- pbp_subs$prev
 
 
+## for each row extract
+
+
+
+
+## alternative for args
+
+
+args2 <- list(gameid = gameid, endperiod = endperiod, startperiod = startperiod, endrange = endrange, startrange = startrange)
+```
+
+
+```r
 ## --------------------- MESSED UP RETURN HERE ---------------------------- ##
 
 
@@ -440,13 +446,6 @@ boxspan <- get_boxtrad(gameid, startrange, endrange)
 boxspan$PLAYER_NAME
 ```
 
-```
-##  [1] "LeBron James"     "Kevin Love"       "Tristan Thompson"
-##  [4] "JR Smith"         "Kyrie Irving"     "Harrison Barnes" 
-##  [7] "Draymond Green"   "Festus Ezeli"     "Klay Thompson"   
-## [10] "Stephen Curry"    "Andre Iguodala"
-```
-
 
 The same concept holds for any of the [stats.nba.com endpoints](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation), though, of course, the specifics (such as specifying data types, etc.) will vary. 
 
@@ -468,21 +467,20 @@ sessionInfo()
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] lubridate_1.6.0    sp_1.2-3           dplyr_0.5.0.9000  
-##  [4] purrr_0.2.2.9000   readr_1.0.0.9000   tidyr_0.6.0       
-##  [7] tibble_1.2         ggplot2_2.1.0.9001 tidyverse_1.0.0   
-## [10] jsonlite_1.1       RCurl_1.95-4.8     bitops_1.0-6      
+##  [1] lubridate_1.6.0  sp_1.2-3         dplyr_0.5.0.9000 purrr_0.2.2.9000
+##  [5] readr_1.0.0.9000 tidyr_0.6.0      tibble_1.2       ggplot2_2.2.0   
+##  [9] tidyverse_1.0.0  jsonlite_1.1     RCurl_1.95-4.8   bitops_1.0-6    
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] Rcpp_0.12.7         knitr_1.15          magrittr_1.5       
+##  [1] Rcpp_0.12.8         knitr_1.15.1        magrittr_1.5       
 ##  [4] hms_0.2             munsell_0.4.3       lattice_0.20-34    
-##  [7] colorspace_1.2-7    R6_2.2.0            stringr_1.1.0      
+##  [7] colorspace_1.3-1    R6_2.2.0            stringr_1.1.0      
 ## [10] plyr_1.8.4          tools_3.3.2         grid_3.3.2         
 ## [13] gtable_0.2.0        DBI_0.5-1           htmltools_0.3.5    
 ## [16] assertthat_0.1      yaml_2.1.14         lazyeval_0.2.0.9000
 ## [19] rprojroot_1.1       digest_0.6.10       curl_2.2           
-## [22] evaluate_0.10       rmarkdown_1.1.9016  stringi_1.1.2      
-## [25] scales_0.4.0.9003   backports_1.0.4
+## [22] evaluate_0.10       rmarkdown_1.1.9017  stringi_1.1.2      
+## [25] scales_0.4.1        backports_1.0.4
 ```
 
 ===  
