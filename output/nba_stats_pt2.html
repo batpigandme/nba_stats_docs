@@ -258,7 +258,7 @@ div.tocify {
 <p>In order to speed up the process of retrieving and parsing data from the stats.nba.api, it’s a good idea to use functions for tasks that you’ll be repeating. Functions can also help you avoid doing things that are easy to mess up, like finding and setting parameters, such as <code>GameID</code>, directly in the URL.</p>
 <div id="defining-functions-in-r" class="section level4">
 <h4>Defining Functions in R</h4>
-<p>In basic tersm, the structure of a user-defined function in R (see below), is as follows: a function name set using the <code>&lt;-</code> assignment operator, argument(s) required put in parentheses <code>()</code>, and code for what the function should do and what data it should return in curly braces <code>{}</code>.</p>
+<p>In basic terms, the structure of a user-defined function in R (see below), is as follows: a function name set using the <code>&lt;-</code> assignment operator, argument(s) required put in parentheses <code>()</code>, and code for what the function should do and what data it should return in curly braces <code>{}</code>.</p>
 <p>More formally, <a href="http://adv-r.had.co.nz/Functions.html#function-components">Hadley Wickham</a> defines the three components of a function as:[^1]</p>
 <ul>
 <li><p>the <code>body()</code>, the code inside the function.</p></li>
@@ -461,7 +461,7 @@ boxscore_3020$PLAYER_NAME</code></pre></div>
 ##  [4] &quot;JR Smith&quot;         &quot;Kyrie Irving&quot;     &quot;Harrison Barnes&quot; 
 ##  [7] &quot;Draymond Green&quot;   &quot;Festus Ezeli&quot;     &quot;Klay Thompson&quot;   
 ## [10] &quot;Stephen Curry&quot;</code></pre>
-<p>Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 “events” of the game, as indicated by the <code>EVENTNUM</code> in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to returne <em>only</em> the <code>PLAYER_ID</code> and/or <code>PLAYER_NAME</code> data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court.</p>
+<p>Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 “events” of the game, as indicated by the <code>EVENTNUM</code> in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to return <em>only</em> the <code>PLAYER_ID</code> and/or <code>PLAYER_NAME</code> data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court.</p>
 <p>If we look at the boxscore for the interval between the first and second substitutions, you can see that the player who entered the game for the first substitution (Andre Iguodala) is listed, while the player who left (Festus Ezeli) is not.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## or set manually ---------------------- TO CHANGE THIS WHEN BACK
 startrange &lt;-<span class="st"> &quot;3021&quot;</span>
@@ -481,6 +481,26 @@ boxspan &lt;-<span class="st"> </span><span class="kw">get_boxtrad</span>(gameid
 
 boxspan$PLAYER_NAME</code></pre></div>
 <p>Note that, in practice, it’s best to take advantage of the fact that each player has a <strong><code>PLAYER_ID</code></strong> when working with this kind of data. That way, you can avoid unnecessary confusion around strings (e.g. whether or not there are periods between the “J” and the “R” in JR Smith).</p>
+</div>
+<div id="getting-nba-personplayer-ids" class="section level4">
+<h4>Getting NBA person/player IDs</h4>
+<p>Though not necessary here, it’s easy enough to get the IDs for all of the players through the NBA <code>players.json</code> file (see parsed below).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## load jsonlite library
+<span class="kw">library</span>(jsonlite)
+
+## get NBA personIds from JSON
+players &lt;-<span class="st"> </span><span class="kw">fromJSON</span>(<span class="st">&quot;http://data.nba.net/data/10s/prod/v1/2016/players.json&quot;</span>)
+ps &lt;-<span class="st"> </span><span class="kw">lapply</span>(players, function(x) x$standard)
+
+firstName &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(ps, function(x) x[[<span class="dv">1</span>]]))
+lastName &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(ps, function(x) x[[<span class="dv">2</span>]]))
+personId &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(ps, function(x) x[[<span class="dv">3</span>]]))
+teamId &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">lapply</span>(ps, function(x) x[[<span class="dv">4</span>]]))
+
+## load tidyverse
+<span class="kw">library</span>(tidyverse)
+## create data frame
+nba_personIds &lt;-<span class="st"> </span><span class="kw">data_frame</span>(firstName, lastName, personId, teamId)</code></pre></div>
 </div>
 <div id="lineups-by-quarter-start-and-play-log" class="section level4">
 <h4>Lineups by quarter-start and play log</h4>

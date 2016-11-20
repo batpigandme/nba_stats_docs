@@ -13,7 +13,7 @@ In order to speed up the process of retrieving and parsing data from the stats.n
 
 #### Defining Functions in R 
 
-In basic tersm, the structure of a user-defined function in R (see below), is as follows: a function name set using the `<-` assignment operator, argument(s) required put in parentheses `()`, and code for what the function should do and what data it should return in curly braces `{}`. 
+In basic terms, the structure of a user-defined function in R (see below), is as follows: a function name set using the `<-` assignment operator, argument(s) required put in parentheses `()`, and code for what the function should do and what data it should return in curly braces `{}`. 
 
 More formally, [Hadley Wickham](http://adv-r.had.co.nz/Functions.html#function-components) defines the three components of a function as:[^1]  
 
@@ -204,6 +204,7 @@ I have yet to come across a formal _“data dictionary”_, with respect to thes
 
 Another way to explore `EVENTMSGTYPE` and `EVENTMSGACTIONTYPE` would be by looking at the different combinations of the two variables with their descriptors.  
 
+
 ```r
 ## get unique sets of EVENTMSG and ACTION TYPEs
 eventmsg_combos <- pbp %>%
@@ -308,7 +309,7 @@ boxscore_3020$PLAYER_NAME
 ## [10] "Stephen Curry"
 ```
 
-Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 "events" of the game, as indicated by the `EVENTNUM` in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to returne _only_ the `PLAYER_ID` and/or `PLAYER_NAME` data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court. 
+Now we have the starting lineups for each team. These are the players who were on the floor for the first 40 "events" of the game, as indicated by the `EVENTNUM` in the play-by-play data. Depending on the goals of your analysis, perhaps you only want to return _only_ the `PLAYER_ID` and/or `PLAYER_NAME` data, and you could define another function that does that for you. You could also join this data to the play-by-play frame, using true/false for each player and/or five player variables for each team, containing the IDs of players on the court. 
 
 If we look at the boxscore for the interval between the first and second substitutions, you can see that the player who entered the game for the first substitution (Andre Iguodala) is listed, while the player who left (Festus Ezeli) is not. 
 
@@ -342,6 +343,30 @@ boxspan$PLAYER_NAME
 ```
 
 Note that, in practice, it's best to take advantage of the fact that each player has a **`PLAYER_ID`** when working with this kind of data. That way, you can avoid unnecessary confusion around strings (e.g. whether or not there are periods between the "J" and the "R" in JR Smith).
+
+#### Getting NBA person/player IDs
+
+Though not necessary here, it's easy enough to get the IDs for all of the players through the NBA `players.json` file (see parsed below).
+
+
+```r
+## load jsonlite library
+library(jsonlite)
+
+## get NBA personIds from JSON
+players <- fromJSON("http://data.nba.net/data/10s/prod/v1/2016/players.json")
+ps <- lapply(players, function(x) x$standard)
+
+firstName <- unlist(lapply(ps, function(x) x[[1]]))
+lastName <- unlist(lapply(ps, function(x) x[[2]]))
+personId <- unlist(lapply(ps, function(x) x[[3]]))
+teamId <- unlist(lapply(ps, function(x) x[[4]]))
+
+## load tidyverse
+library(tidyverse)
+## create data frame
+nba_personIds <- data_frame(firstName, lastName, personId, teamId)
+```
 
 
 #### Lineups by quarter-start and play log
