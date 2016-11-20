@@ -3,3 +3,6 @@ html_document:
   theme: yeti
   fig_caption: false
   keep_md: true
+  toc: true
+  toc_float: true
+  toc_depth: 4

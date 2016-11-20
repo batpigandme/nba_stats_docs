@@ -8,6 +8,9 @@ output:
     highlight: tango
     fig_caption: false
     keep_md: true
+    toc: true
+    toc_float: true
+    toc_depth: 4
 ---
 
 ```{r setup, include=FALSE}
@@ -206,7 +209,11 @@ pbp_subs <- pbp %>%
 
 By looking at the descriptions, you can see that for a given substitution, the player _leaving_ the court is Player 1 (`PLAYER1_ID`), and the player coming in is Player 2 (`PLAYER2_ID`). 
 
+#### Defining a function to retrieve box score
+
 Since manually editing the box score endpoint URL would be time consuming, and annoying, let's write a function to make things a bit easier. In keeping with the convention of the functions we've already loaded, it's a good idea to give it a name that begins with `get_`. We'll also want to set the `RangeType` to 2, since we're using the `StartRange` and `EndRange` parameters. For troubleshooting purposes, it's also a good idea to give the results of the steps within your function different names.
+
+Note, also, that it's best to keep your functions in a single file (as was done with `_functions.R`), so they can be easily loaded, and out of the way. 
 
 ```{r get boxscore}
 
@@ -256,6 +263,15 @@ boxscore_3860 <- get_boxtrad(gameid, startrange, endrange)
 boxscore_3860$PLAYER_NAME
 ```
 
+However, if we were to get the boxscore starting at the beginning of the game, _through_ the second substitution, we would have more than 10 players returned.
+
+```{r boxspan, eval=FALSE}
+startrange <- "0"
+
+boxspan <- get_boxtrad(gameid, startrange, endrange)
+
+boxspan$PLAYER_NAME
+```
 
 Note that, in practice, it's best to take advantage of the fact that each player has a **`PLAYER_ID`** when working with this kind of data. That way, you can avoid unnecessary confusion around strings (e.g. whether or not there are periods between the "J" and the "R" in JR Smith).
 
@@ -295,15 +311,16 @@ pbp_subs <- pbp_subs_w_lag
 
 
 ```{r construct URL}
+
 ## align parameters we want for boxscore URL with variables in play-by-play data
 
-gameid <- pbp_subs$GAME_ID
-endperiod <- pbp_subs$PERIOD
-startperiod <- pbp_subs$PERIOD
-endrange <- pbp_subs$range_clock
-startrange <- pbp_subs$prev
+# gameid <- pbp_subs$GAME_ID
+# endperiod <- pbp_subs$PERIOD
+# startperiod <- pbp_subs$PERIOD
+# endrange <- pbp_subs$range_clock
+# startrange <- pbp_subs$prev
 
-pbp_subs$subURL <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=",pbp_subs$PERIOD,"&EndRange=",pbp_subs$range_clock,"&GameID=",gameid,"&RangeType=2&StartPeriod=",pbp_subs$PERIOD,"&StartRange=",pbp_subs$prev,"", sep = "")
+# pbp_subs$subURL <- paste("http://stats.nba.com/stats/boxscoretraditionalv2?EndPeriod=",pbp_subs$PERIOD,"&EndRange=",pbp_subs$range_clock,"&GameID=",gameid,"&RangeType=2&StartPeriod=",pbp_subs$PERIOD,"&StartRange=",pbp_subs$prev,"", sep = "")
 ```
 
 ## ***** STOP HERE AND FIX BELOW *****
@@ -341,7 +358,7 @@ args2 <- list(gameid = gameid, endperiod = endperiod, startperiod = startperiod,
 
 ```
 
-```{r revise}
+```{r revise, eval=FALSE}
 ## --------------------- MESSED UP RETURN HERE ---------------------------- ##
 
 
@@ -367,14 +384,6 @@ players_on <- function(URL){
 
 
 
-However, if we were to get the boxscore starting at the beginning of the game, _through_ the second substitution, we would have more than 10 players returned.
-```{r boxspan, eval=FALSE}
-startrange <- "0"
-
-boxspan <- get_boxtrad(gameid, startrange, endrange)
-
-boxspan$PLAYER_NAME
-```
 
 
 The same concept holds for any of the [stats.nba.com endpoints](https://github.com/seemethere/nba_py/wiki/stats.nba.com-Endpoint-Documentation), though, of course, the specifics (such as specifying data types, etc.) will vary. 
