@@ -48,3 +48,17 @@ away_pbp <- pbp_1617 %>%
 ### playing around
 home_v_min <- home_pbp %>%
   filter(GAME_ID == "0021600978")
+
+home_players_v_min <- home_v_min %>%
+  gather("player_num", "pid_on", 36:40)
+
+write.csv(home_players_v_min, file="other/data/bucks/home_players_v_min.csv", row.names = FALSE)
+
+home_players_pbp <- home_pbp %>%
+  gather("player_num", "pid_on", 36:40)
+
+away_players_pbp <- away_pbp %>%
+  gather("player_num", "pid_on", 41:45)
+
+write.csv(home_players_pbp, file="other/data/bucks/home_players_pbp.csv", row.names = FALSE)
+write.csv(away_players_pbp, file="other/data/bucks/away_players_pbp.csv", row.names = FALSE)
